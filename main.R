@@ -1,3 +1,8 @@
+# last revision: 2017/03/30
+# loss of generality;
+
+library(plyr)
+library(dplyr)
 library(gstat)
 library(spacetime)
 
