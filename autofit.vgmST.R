@@ -1,7 +1,20 @@
-
-autofitSTV <- function(stf, formula, typestv='sumMetric',
+### autofit.vgmST.R
+### Author: Felix Song (henry385@snu.ac.kr)
+### INPUT
+#### stf: ST*DF
+#### formula: formula
+#### typestv: character. type of spatio-temporal covariance function. 
+####          should be one of c('separable','sumMetric','simplesumMetric','productSum','productSumOld','metric')
+#### guess_nugget: spatio-temporal joint nugget
+#### guess_psill: spatio-temporal joint partial sill
+#### aniso_method: character. method of estimating spatio-temporal anisotropy ratio.
+####               should be one of c('range','linear','vgm')
+#### type_joint: model type of spatio-temporal joint process. only used when typestv is metric-variant type
+#### prodsum_k: positive numeric. only used in productSum or productSumOld model type
+autofit.vgmST <- function(stf, formula, typestv='sumMetric',
                        candidate_model=c('Ste','Exc','Exp','Wav'),
-                       boundaries
+                       guess_nugget = NULL,
+                       guess_psill = NULL,
                        tlags=0:6, cutoff=2e4, width=5e2,
                        aniso_method='vgm',
                        type_joint='Exp',
@@ -31,9 +44,13 @@ autofitSTV <- function(stf, formula, typestv='sumMetric',
                        method = aniso_method, 
                        spatialVgm = stva.sp.fit$var_model,
                        temporalVgm = stva.ts.fit$var_model)
-  guess_nugget <- min(stva$gamma) - 0.5 * (min(stva.sp$gamma) + min(stva.ts$gamma))
-  guess_psill <- max(stva$gamma) - (max(stva.sp$gamma, stva.ts$gamma) * 0.9)
-  
+  if (is.null(guess_nugget)){
+    guess_nugget <- min(stva$gamma) - 0.5 * (min(stva.sp$gamma) + min(stva.ts$gamma))
+  }
+  if (is.null(guess_psill)){
+    guess_psill <- max(stva$gamma) - (max(stva.sp$gamma, stva.ts$gamma) * 0.9)
+  }
+  sill <- guess_psill * 5
   stv.jo <- vgm(model = type_joint, 
                 psill = guess_psill, nugget = guess_nugget, 
                 range = 0.2 * sqrt((stv.ani)^2 + (max(stva$spacelag)^2)))
