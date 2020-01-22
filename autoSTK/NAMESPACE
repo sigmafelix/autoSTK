@@ -1,0 +1,5 @@
+exportPattern("^[[:alpha:]]+")
+import(gstat)
+import(spacetime)
+import(automap)
+import(dplyr)
