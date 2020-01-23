@@ -23,7 +23,8 @@ autofitVariogramST <- function(
                        width=5e2,
                        aniso_method='vgm',
                        type_joint='Exp',
-                       prodsum_k=0.25
+                       prodsum_k=0.25,
+                       theoretical = FALSE
                        ){
 
   stva <- setSTI(stf=stf,
@@ -46,34 +47,38 @@ autofitVariogramST <- function(
                                       input_vgm = stva.ts,
                                       model = candidate_model)
 
-  if (typestv == 'separable'){
-    sill.init <- max(gamma) * 0.85
-    vgm.spatial$psill <- vgm.spatial$psill / sill.init
-    vgm.temporal$psill <- vgm.temporal$psill / sill.init
-  }
+  #if (typestv == 'separable'){
+  #  sill.init <- median(stva$gamma)
+  #  vgm.spatial$psill <- vgm.spatial$psill / sill.init
+  #  vgm.temporal$psill <- vgm.temporal$psill / sill.init
+  #}
 
   stv.ani <- estiStAni(stva,
-                       interval = c(0.25, 4)*median(stva$spacelag)*0.5,
+                       interval = c(0.2, 2)*median(stva$spacelag),
                        method = aniso_method,
                        spatialVgm = stva.sp.fit$var_model,
                        temporalVgm = stva.ts.fit$var_model)
   if (is.null(guess_nugget)){
-    guess_nugget <- min(stva$gamma) - 0.5 * (min(stva.sp$gamma) + min(stva.ts$gamma))
+    guess_nugget <- max(min(stva$gamma), min(stva$gamma) - 0.5 * (min(stva.sp$gamma) + min(stva.ts$gamma)))
   }
   if (is.null(guess_psill)){
-    guess_psill <- max(stva$gamma) - (max(stva.sp$gamma, stva.ts$gamma) * 0.9)
+    guess_psill_c1 <- 0.5 *(max(stva$gamma) - max(stva.sp$gamma, stva.ts$gamma) )
+    guess_psill_c2 <- 0.5* (stva$gamma[length(stva$gamma)] - max(stva.sp$gamma, stva.ts$gamma))
+    guess_psill <- max(0.05*max(stva.sp$gamma), min(guess_psill_c1, guess_psill_c2))
   }
-  sill <- guess_psill * 5
+  sill <- max(stva$gamma)*0.5
   stv.jo <- vgm(model = type_joint,
                 psill = guess_psill, nugget = guess_nugget,
-                range = 0.2 * sqrt((stv.ani)^2 + (max(stva$spacelag)^2)))
+                range = 0.75 * sqrt((stv.ani)^2 + (max(stva$spacelag)^2)))
 
   ## sp phi, sigmasq, tausq - ts-joint - total sill and nugget,  stani
   variost.mod <- switch(typestv,
                         separable = vgmST(stModel = typestv, space = stva.sp.fit$var_model,
-                                          time = stva.ts.fit$var_model, sill = sill),
+                                          time = stva.ts.fit$var_model, sill = sill,
+                                          nugget = guess_nugget),
                         productSum = vgmST(stModel = typestv,
-                                           space = stva.sp.fit$var_model, time = stva.ts.fit$var_model, k = prodsum_k),
+                                           space = stva.sp.fit$var_model, time = stva.ts.fit$var_model,
+                                           k = prodsum_k),
                         productSumOld = vgmST(stModel = typestv,
                                               space = stva.sp.fit$var_model, time = stva.ts.fit$var_model,
                                               sill = guess_psill * sqrt(2), nugget = nugget),
@@ -87,17 +92,28 @@ autofitVariogramST <- function(
                         stop(paste("model", typest, "unknown")))
 
 
-  joint.lower=extractPar(variost.mod) * 0.8
+  joint.lower=extractPar(variost.mod) * 0.1
   joint.upper=extractPar(variost.mod) * 1.2
   stva.joint <- fit.StVariogram(object = stva, model = variost.mod, stAni = stv.ani,
                                 method='L-BFGS-B',
                                 lower = joint.lower, upper = joint.upper,
-                                control = list(maxit=1e4, REPORT=1))
+                                control = list(maxit=5e3, REPORT=1))
 
-  autofitSTV <- list(jointSTV=stva.joint,
-                     empSTV=stva,
-                     SpV=stva.sp.fit,
-                     TV=stva.ts.fit)
+  if (theoretical){
+    STVS <- variogramSurface(stva.joint, stva[,c('timelag', 'spacelag')])
+    autofitSTV <- list(jointSTV=stva.joint,
+                       empSTV=stva,
+                       SpV=stva.sp.fit,
+                       TV=stva.ts.fit,
+                       STVsurface=STVS)
 
-  return(autofitSTV)
+  } else {
+    autofitSTV <- list(jointSTV=stva.joint,
+                       empSTV=stva,
+                       SpV=stva.sp.fit,
+                       TV=stva.ts.fit)
+
+  }
+
+    return(autofitSTV)
 }

@@ -5,8 +5,10 @@
 autoKrigeST()
 }
 \description{
-Prints 'Hello, world!'.
+Automatically krige the input dataset.
 }
 \examples{
 autoKrigeST()
+library(lattice)
+wireframe()
 }

@@ -56,14 +56,14 @@ autofitVariogram = function(formula, input_data, input_vgm = NULL, model = c("Sp
       if (is.null(input_vgm)){
         initial_range = 0.1 * diagonal   # 0.10 times the length of the central axis through the area
       } else {
-        initial_range = 0.1 * median(input_vgm$dist)
+        initial_range = 0.25* median(input_vgm$dist)
       }
 
     } else {
         initial_range = start_vals[2]
     }
     if(is.na(start_vals[3])) { # Sill
-        initial_sill = mean(c(max(experimental_variogram$gamma), median(experimental_variogram$gamma)))
+        initial_sill = mean(c(0.8*max(experimental_variogram$gamma), median(experimental_variogram$gamma)))
     } else {
         initial_sill = start_vals[3]
     }
