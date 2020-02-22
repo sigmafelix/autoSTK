@@ -23,7 +23,7 @@ autofitVariogramST <- function(
                        width=5e2,
                        aniso_method='vgm',
                        type_joint='Exp',
-                       prodsum_k=0.25
+                       prodsum_k=0.25, ...
                        ){
   
   stva <- setSTI(stf=stf, 

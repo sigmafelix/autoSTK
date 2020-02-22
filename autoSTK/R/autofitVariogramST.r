@@ -24,7 +24,8 @@ autofitVariogramST <- function(
                        aniso_method='vgm',
                        type_joint='Exp',
                        prodsum_k=0.25,
-                       theoretical = FALSE
+                       theoretical = FALSE,
+                       cores = 1
                        ){
 
   stva <- setSTI(stf=stf,
@@ -32,7 +33,8 @@ autofitVariogramST <- function(
                  tlags = tlags,
                  cutoff = cutoff,
                  width = width,
-                 wireframe=FALSE)
+                 wireframe=FALSE,
+                 cores = cores)
   stva.sp <- marginal.variogramST(stva,
                            bound = cutoff)
   stva.ts <- marginal.variogramST(stva,

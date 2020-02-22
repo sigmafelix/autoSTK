@@ -13,7 +13,7 @@
 plot.sti.set <- 
   function(stf, formula, tlags=0:6, cutoff=30000, width=1000, 
            assumeRegular=TRUE, pseudo=1, logarithm = FALSE, na.omit=TRUE,
-           wireframe=TRUE, plot3d=FALSE) {
+           wireframe=TRUE, plot3d=FALSE, cores = 1) {
     library(rgl)
     formula <- as.formula(formula)
     ncol.stf <- (cutoff / width) + 1
@@ -33,7 +33,7 @@ plot.sti.set <-
                                  pseudo = pseudo,
                                  na.omit = na.omit,
                                  cutoff = cutoff,
-                                 width = width)
+                                 width = width, cores = cores)
     if (!wireframe & !plot3d){
       plot.sti.set <- apo.pmsub.stf
     }

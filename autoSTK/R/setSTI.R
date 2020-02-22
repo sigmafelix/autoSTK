@@ -10,22 +10,22 @@
 ### wireframe: LOGICAL. Whether you plot a StVariogram in wireframe or not. If not, the return will be in class of data.frame, not a list
 ### plot3d: LOGICAL. Wheter you make a three-dimensional graph with rgl package
 
-setSTI <- 
-  function(stf, formula, tlags=0:6, cutoff=30000, width=1000, 
+setSTI <-
+  function(stf, formula, tlags=0:6, cutoff=30000, width=1000,
            assumeRegular=TRUE, pseudo=1, logarithm = FALSE, na.omit=TRUE,
-           wireframe=TRUE, plot3d=FALSE) {
+           wireframe=TRUE, plot3d=FALSE, cores = 1) {
     library(rgl)
     formula <- as.formula(formula)
     ncol.stf <- (cutoff / width) + 1
     nrow.stf <- max(tlags)
-    
+
     if (logarithm){
       stf@data <- log(stf@data)
     }
     else {
       stf <- stf
     }
-    
+
     apo.pmsub.stf <- variogramST(formula = formula,
                                  data = stf,
                                  tlags = tlags,
@@ -33,11 +33,12 @@ setSTI <-
                                  pseudo = pseudo,
                                  na.omit = na.omit,
                                  cutoff = cutoff,
-                                 width = width)
+                                 width = width,
+                                 cores = cores)
     if (!wireframe & !plot3d){
       plot.sti.set <- apo.pmsub.stf
     }
-    
+
     if (wireframe) {
       wireframe.stf <- lattice::wireframe(gamma ~ spacelag * timelag,
                                           apo.pmsub.stf,
@@ -49,7 +50,7 @@ setSTI <-
       plot.sti.set <- list(apo.pmsub.stf, wireframe.stf)
     }
     if (wireframe * plot3d == 1) {
-      apo.pmsub.stf.mat <- matrix(apo.pmsub.stf$gamma, 
+      apo.pmsub.stf.mat <- matrix(apo.pmsub.stf$gamma,
                                   byrow=FALSE,
                                   nrow=nrow.stf, ncol=ncol.stf)
       persp.stf <- persp3d(x=unique(apo.pmsub.stf$spacelag),

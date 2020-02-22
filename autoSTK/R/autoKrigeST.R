@@ -15,7 +15,7 @@ autoKrigeST = function(formula, input_data, new_data, type_stv = 'sumMetric', da
 						         type_joint='Exp',
 						         prodsum_k=0.25,
 						         theoretical = FALSE,
-						         start_vals = c(NA,NA,NA), miscFitOptions = list(), ...)
+						         start_vals = c(NA,NA,NA), miscFitOptions = list(), cores = 1, ...)
 # This function performs an automatic Kriging on the data in input_data
 {
   	if(inherits(formula, "STIDF") | inherits(formula, "STFDF") | inherits(formula, "STSDF"))
@@ -84,7 +84,8 @@ autoKrigeST = function(formula, input_data, new_data, type_stv = 'sumMetric', da
                       aniso_method=aniso_method,
                       type_joint=type_joint,
                       prodsum_k=prodsum_k,
-                      theoretical = theoretical)
+                      theoretical = theoretical,
+                      cores = cores)
 
     ## Perform the interpolation
     krige_result = krigeST(formula = formula,
@@ -94,10 +95,12 @@ autoKrigeST = function(formula, input_data, new_data, type_stv = 'sumMetric', da
                       #block = block,
 					  ...)
 
-    krige_result$var1.stdev = sqrt(krige_result$var1.var)
+    krige_result@data$var.stdev <- sqrt(as.vector(krige_result@data[,'var1.pred']))
+
+    #krige_result$var1.stdev = sqrt(krige_result$var1.var)
 
     # Aggregate the results into an autoKrige object
-    result = list(krige_output = krige_result,exp_var = variogram_object$exp_var, var_model = variogram_object$var_model, sserr = variogram_object$sserr)
+    result = list(krige_output = krige_result,var_model = variogram_object$jointSTV)
     class(result) = c("autoKrige","list")
 
     return(result)
