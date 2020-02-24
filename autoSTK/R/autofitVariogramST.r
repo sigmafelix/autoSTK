@@ -94,12 +94,12 @@ autofitVariogramST <- function(
                         stop(paste("model", typest, "unknown")))
 
 
-  joint.lower=extractPar(variost.mod) * 0.1
-  joint.upper=extractPar(variost.mod) * 1.2
+  joint.lower=extractPar(variost.mod) * 0.5
+  joint.upper=extractPar(variost.mod) * 1.5
   stva.joint <- fit.StVariogram(object = stva, model = variost.mod, stAni = stv.ani,
                                 method='L-BFGS-B',
                                 lower = joint.lower, upper = joint.upper,
-                                control = list(maxit=5e3, REPORT=1))
+                                control = list(maxit=2.5e3, REPORT=1))
 
   if (theoretical){
     STVS <- variogramSurface(stva.joint, stva[,c('timelag', 'spacelag')])
