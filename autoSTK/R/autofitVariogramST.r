@@ -23,7 +23,7 @@ autofitVariogramST <- function(
                        width=5e2,
                        aniso_method='vgm',
                        type_joint='Exp',
-                       prodsum_k=0.25,
+                       prodsum_k=NULL,
                        theoretical = FALSE,
                        cores = 1
                        ){
@@ -66,12 +66,20 @@ autofitVariogramST <- function(
   if (is.null(guess_psill)){
     guess_psill_c1 <- 0.5 *(max(stva$gamma) - max(stva.sp$gamma, stva.ts$gamma) )
     guess_psill_c2 <- 0.5* (stva$gamma[length(stva$gamma)] - max(stva.sp$gamma, stva.ts$gamma))
-    guess_psill <- max(0.05*max(stva.sp$gamma), min(guess_psill_c1, guess_psill_c2))
+    if (typestv == 'metric'){
+		guess_psill <- 0.5 * max(stva.sp$gamma)
+	} else {
+		guess_psill <- max(0.05*max(stva.sp$gamma), min(guess_psill_c1, guess_psill_c2))
+	}
   }
   sill <- max(stva$gamma)*0.5
   stv.jo <- vgm(model = type_joint,
                 psill = guess_psill, nugget = guess_nugget,
                 range = 0.75 * sqrt((stv.ani)^2 + (max(stva$spacelag)^2)))
+
+	if (is.null(prodsum_k)){
+		prodsum_k <- 4/max(stva.sp$gamma)
+	}
 
   ## sp phi, sigmasq, tausq - ts-joint - total sill and nugget,  stani
   variost.mod <- switch(typestv,
@@ -83,7 +91,7 @@ autofitVariogramST <- function(
                                            k = prodsum_k),
                         productSumOld = vgmST(stModel = typestv,
                                               space = stva.sp.fit$var_model, time = stva.ts.fit$var_model,
-                                              sill = guess_psill * sqrt(2), nugget = nugget),
+                                              sill = guess_psill * sqrt(2), nugget = guess_nugget),
                         sumMetric = vgmST(stModel = typestv, space = stva.sp.fit$var_model, time = stva.ts.fit$var_model,
                                           joint = stv.jo, stAni = stv.ani),
                         simpleSumMetric = vgmST(stModel = typestv,
@@ -94,7 +102,7 @@ autofitVariogramST <- function(
                         stop(paste("model", typest, "unknown")))
 
 
-  joint.lower=extractPar(variost.mod) * 0.5
+  joint.lower=extractPar(variost.mod) * 0.25
   joint.upper=extractPar(variost.mod) * 1.5
   stva.joint <- fit.StVariogram(object = stva, model = variost.mod, stAni = stv.ani,
                                 method='L-BFGS-B',
