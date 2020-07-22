@@ -8,10 +8,14 @@ marginal.variogramST <- function(stv, bound, spatial=TRUE){
   #}
   print(stv)
   if (spatial) {
-    vg = stv %>% dplyr::filter(timelag == 0 & spacelag <= bound & !is.na(gamma))
+    vg = stv[(1:nrow(stv)) * ((stv$timelag == min(stv$timelag)) * (stv$spacelag <= bound) * !is.na(stv$gamma)),]
+    vg$np <- as.numeric(vg$np)
   }
   else {
-    vg = stv %>% dplyr::filter(spacelag == 0 & !is.na(gamma)) %>% mutate(dist = timelag, id = 0)
+    vg = stv[(1:nrow(stv)) * ((stv$spacelag == min(stv$spacelag)) * !is.na(stv$gamma)),]
+    vg$dist <- vg$timelag
+    vg$id <- 0
+    vg$np <- as.numeric(vg$np)
   }
   class(vg) = c('gstatVariogram', 'data.frame')
   return(vg)

@@ -1,32 +1,36 @@
 # last revision: 2020/01/22
 
 
-autoKrigeST = function(formula, input_data, new_data, type_stv = 'sumMetric', data_variogram = input_data, block = 0,
+autoKrigeST = function(formula,
+                       input_data, new_data,
+                       type_stv = 'sumMetric',
+                       data_variogram = input_data, block = 0,
                      model = c("Sph", "Exp", "Gau", "Ste"),
                      kappa = c(0.05, seq(0.2, 2, 0.1), 5, 10),
 						         fix.values = c(NA,NA,NA),
                      #remove_duplicates = TRUE,
                      newdata_mode = 'rect',
 						         newdata_npoints = 1e4,
-                     verbose = FALSE, GLS.model = NA,
+                     verbose = FALSE,
+						         GLS.model = NA,
 						         tlags=0:6,
 						         cutoff=2e4,
 						         width=5e2,
 						         aniso_method='vgm',
 						         type_joint='Exp',
 						         prodsum_k=0.25,
-						         theoretical = FALSE,
-						         start_vals = c(NA,NA,NA), miscFitOptions = list(), cores = 1, ...)
+						         surface = FALSE,
+						         start_vals = c(NA,NA,NA),
+						         miscFitOptions = list(),
+						         cores = 1, ...)
 # This function performs an automatic Kriging on the data in input_data
 {
   	if(inherits(formula, "STIDF") | inherits(formula, "STFDF") | inherits(formula, "STSDF"))
-  	# Is someone just passes a spatialpointsdataframe, assume he/she wants to interpolate the first column with Ordinary Kriging
   	{
   		input_data = formula
   		formula = as.formula(paste(names(input_data)[1], "~ 1"))
   	}
 
-    # Check if inpu_data and data_variogram are SpatialPointsDataFrame
     if((!inherits(input_data,"STFDF") & !inherits(data_variogram,"STFDF") & !inherits(input_data,"STIDF") & !inherits(data_variogram,"STIDF") & !inherits(input_data,"STSDF") & !inherits(data_variogram,"STSDF")))
     {
         stop(paste("\nInvalid input objects: input_data or data_variogram not of class 'ST*DF'.\n\tClass input_data: '",
@@ -77,7 +81,6 @@ autoKrigeST = function(formula, input_data, new_data, type_stv = 'sumMetric', da
     variogram_object = autofitVariogramST(formula = formula,
                       stf = data_variogram,
                       typestv = type_stv,
-                      #autoselect.model = autoselect.model,
                       candidate_model = model,
                       tlags=tlags,
                       cutoff=cutoff,
@@ -85,7 +88,7 @@ autoKrigeST = function(formula, input_data, new_data, type_stv = 'sumMetric', da
                       aniso_method=aniso_method,
                       type_joint=type_joint,
                       prodsum_k=prodsum_k,
-                      theoretical = theoretical,
+                      surface = surface,
                       cores = cores)
 
     ## Perform the interpolation
@@ -93,16 +96,14 @@ autoKrigeST = function(formula, input_data, new_data, type_stv = 'sumMetric', da
                       data = input_data,
                       newdata = new_data,
                       modelList = variogram_object$jointSTV,
-                      #block = block,
 					  ...)
 
     krige_result@data$var.stdev <- sqrt(as.vector(krige_result@data[,'var1.pred']))
 
-    #krige_result$var1.stdev = sqrt(krige_result$var1.var)
-
     # Aggregate the results into an autoKrige object
-    result = list(krige_output = krige_result,var_model = variogram_object$jointSTV)
-    class(result) = c("autoKrige","list")
+    result = list(krige_output = krige_result,
+                  var_model = variogram_object$jointSTV)
+    class(result) = c("autoKrigeST","list")
 
     return(result)
 

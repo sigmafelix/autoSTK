@@ -1,5 +1,5 @@
 ### autofitVariogramST.R
-### Author: Felix Song (isong@uoregon.edu)
+### Author: Insang Song (sigmafelix@hotmail.com)
 ### INPUT
 #### stf: ST*DF
 #### formula: formula
@@ -24,7 +24,7 @@ autofitVariogramST <- function(
                        aniso_method='vgm',
                        type_joint='Exp',
                        prodsum_k=NULL,
-                       theoretical = FALSE,
+                       surface = FALSE,
                        cores = 1
                        ){
 
@@ -39,6 +39,8 @@ autofitVariogramST <- function(
                            bound = cutoff)
   stva.ts <- marginal.variogramST(stva,
                            spatial = FALSE)
+  stva.sp$np <- as.numeric(stva.sp$np)
+  stva.ts$np <- as.numeric(stva.ts$np)
 
   stva.sp.fit <- autofitVariogram(formula=NULL, verbose=TRUE,
                                     input_data = NULL,
@@ -109,7 +111,7 @@ autofitVariogramST <- function(
                                 lower = joint.lower, upper = joint.upper,
                                 control = list(maxit=2.5e3, REPORT=1))
 
-  if (theoretical){
+  if (surface){
     STVS <- variogramSurface(stva.joint, stva[,c('timelag', 'spacelag')])
     autofitSTV <- list(jointSTV=stva.joint,
                        empSTV=stva,

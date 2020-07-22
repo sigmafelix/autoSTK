@@ -1,5 +1,5 @@
 ### setSTI.R
-### AUTHOR: Felix Song(henry385@snu.ac.kr)
+### AUTHOR: Insang Song (sigmafelix@hotmail.com)
 ### INPUT
 ### stf: ST*DF
 ### formula: formula (inherits the same parameter in variogramST)
