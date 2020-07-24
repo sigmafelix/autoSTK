@@ -83,7 +83,6 @@ fitted variogram model. The attribute names are \code{krige_output}, \code{exp_v
 and \code{sserr} respectively.
 }
 \author{Insang Song, \email{sigmafelix@hotmail.com}}
-\author{Paul Hiemstra, \email{paul@numbertheory.nl}}
 \seealso{\code{\link{autofitVariogramST}}, \code{\link[gstat]{krigeST}}}
 \examples{
 # The first part of the example is from the example of krigeST
