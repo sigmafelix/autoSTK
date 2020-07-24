@@ -45,7 +45,7 @@ autofitVariogramST(
     #\item{surface}{\code{logical}. Set \code{TRUE} if you want to get the wireframe plot of the fitted spatiotemporal variogram}
     \item{cores}{The number of cores to be used for estimating \link[gstat]{variogramST}. See \link[gstat]{variogramST} for detail.}
 }
-}
+
 \details{
 }
 \value{
