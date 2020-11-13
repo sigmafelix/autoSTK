@@ -35,21 +35,38 @@ autofitVariogramST <- function(
                  width = width,
                  wireframe=FALSE,
                  cores = cores)
-  stva.sp <- marginal.variogramST(stva,
-                           bound = cutoff)
-  stva.ts <- marginal.variogramST(stva,
-                           spatial = FALSE)
-  stva.sp$np <- as.numeric(stva.sp$np)
-  stva.ts$np <- as.numeric(stva.ts$np)
+  if (is.null(candidate_model)){
+    stva.sp <- marginal.variogramST(stva,
+                                    bound = cutoff)
+    stva.ts <- marginal.variogramST(stva,
+                                    spatial = FALSE)
+    stva.sp.fit <- autofitVariogram(formula=NULL, verbose=TRUE,
+                                    input_data = NULL,
+                                    input_vgm = stva.sp,
+                                    model = NULL)
+    stva.ts.fit <- autofitVariogram(formula=NULL, verbose=TRUE,
+                                    input_data = NULL,
+                                    input_vgm = stva.ts,
+                                    model = NULL)
+    aniso_method <- 'linear'
+  } else {
+    stva.sp <- marginal.variogramST(stva,
+                                    bound = cutoff)
+    stva.ts <- marginal.variogramST(stva,
+                                    spatial = FALSE)
+    stva.sp$np <- as.numeric(stva.sp$np)
+    stva.ts$np <- as.numeric(stva.ts$np)
 
-  stva.sp.fit <- autofitVariogram(formula=NULL, verbose=TRUE,
+    stva.sp.fit <- autofitVariogram(formula=NULL, verbose=TRUE,
                                     input_data = NULL,
-                                      input_vgm = stva.sp,
-                                      model = candidate_model)
-  stva.ts.fit <- autofitVariogram(formula=NULL, verbose=TRUE,
+                                    input_vgm = stva.sp,
+                                    model = candidate_model)
+    stva.ts.fit <- autofitVariogram(formula=NULL, verbose=TRUE,
                                     input_data = NULL,
-                                      input_vgm = stva.ts,
-                                      model = candidate_model)
+                                    input_vgm = stva.ts,
+                                    model = candidate_model)
+
+  }
 
   #if (typestv == 'separable'){
   #  sill.init <- median(stva$gamma)
@@ -103,9 +120,13 @@ autofitVariogramST <- function(
                         metric = vgmST(stModel = typestv, joint = stv.jo, stAni = stv.ani),
                         stop(paste("model", typest, "unknown")))
 
-
   joint.lower=extractPar(variost.mod) * 0.25
   joint.upper=extractPar(variost.mod) * 1.5
+  if (any(is.infinite(joint.lower))) joint.lower[which(is.infinite(joint.lower))] <- 0
+  if (any(is.infinite(joint.upper))) joint.upper[which(is.infinite(joint.upper))] <- 1e4
+  if (any(is.na(joint.lower))) joint.lower[which(is.na(joint.lower))] <- 0
+  if (any(is.na(joint.upper))) joint.upper[which(is.na(joint.upper))] <- 1e4
+
   stva.joint <- fit.StVariogram(object = stva, model = variost.mod, stAni = stv.ani,
                                 method='L-BFGS-B',
                                 lower = joint.lower, upper = joint.upper,
