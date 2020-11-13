@@ -1,24 +1,31 @@
 autofitVariogram = function(formula, input_data, input_vgm = NULL, model = c("Sph", "Exp", "Gau", "Ste"),
                                 kappa = c(0.05, seq(0.2, 2, 0.1), 5, 10), fix.values = c(NA,NA,NA),
-								verbose = FALSE, GLS.model = NA, start_vals = c(NA,NA,NA),
+								verbose = FALSE, GLS.model = NA, start_vals = c(NA,NA,NA), 
                                 miscFitOptions = list(),...)
 # This function automatically fits a variogram to input_data
 {
     if (!is.null(input_data) & is.null(input_vgm)){
         # Check for anisotropy parameters
         if('alpha' %in% names(list(...))) warning('Anisotropic variogram model fitting not supported, see the documentation of autofitVariogram for more details.')
-
+    
         # Take the misc fit options and overwrite the defaults by the user specified ones
         miscFitOptionsDefaults = list(merge.small.bins = TRUE, min.np.bin = 5)
         miscFitOptions = modifyList(miscFitOptionsDefaults, miscFitOptions)
-
+    
         # Create boundaries
-        longlat = !is.projected(input_data)
-        if(is.na(longlat)) longlat = FALSE
-        diagonal = spDists(t(bbox(input_data)), longlat = longlat)[1,2]                # 0.35 times the length of the central axis through the area
+        if (grepl('Spatial.*', class(input_data))) {
+			longlat = !is.projected(input_data)
+			if(is.na(longlat)) longlat = FALSE 
+			diagonal = spDists(t(bbox(input_data)), longlat = longlat)[1,2]                # 0.35 times the length of the central axis through the area
+        } else {
+			longlat = st_is_longlat(input_data)
+			diagonal = st_as_sfc(st_bbox(input_data))
+			diagonal = st_cast(diagonal, 'POINT')
+			diagonal = st_distance(diagonal[c(1,3)], longlat = longlat)[1:2,1]
+		}
         boundaries = c(2,4,6,9,12,15,25,35,50,65,80,100) * diagonal * 0.35/100         # Boundaries for the bins in km
-
-
+        
+        
         # If you specifiy a variogram model in GLS.model the Generelised least squares sample variogram is constructed
         if(!is(GLS.model, "variogramModel")) {
             experimental_variogram = variogram(formula, input_data,boundaries = boundaries, ...)
@@ -33,19 +40,19 @@ autofitVariogram = function(formula, input_data, input_vgm = NULL, model = c("Sp
         if(verbose) cat("Checking if any bins have less than 5 points, merging bins when necessary...\n\n")
         while(TRUE) {
             if(length(experimental_variogram$np[experimental_variogram$np < miscFitOptions[["min.np.bin"]]]) == 0 | length(boundaries) == 1) break
-            boundaries = boundaries[2:length(boundaries)]
+            boundaries = boundaries[2:length(boundaries)]			
             if(!is(GLS.model, "variogramModel")) {
                 experimental_variogram = variogram(formula, input_data,boundaries = boundaries, ...)
             } else {
                 experimental_variogram = variogram(g, boundaries = boundaries, ...)
             }
-        }
+        }	
         }
 
     } else {
         experimental_variogram <- input_vgm
     }
-
+    
     # set initial values
     if(is.na(start_vals[1])) {  # Nugget
         initial_nugget = min(experimental_variogram$gamma)
@@ -53,21 +60,16 @@ autofitVariogram = function(formula, input_data, input_vgm = NULL, model = c("Sp
         initial_nugget = start_vals[1]
     }
     if(is.na(start_vals[2])) { # Range
-      if (is.null(input_vgm)){
         initial_range = 0.1 * diagonal   # 0.10 times the length of the central axis through the area
-      } else {
-        initial_range = 0.25* median(input_vgm$dist)
-      }
-
     } else {
         initial_range = start_vals[2]
     }
     if(is.na(start_vals[3])) { # Sill
-        initial_sill = mean(c(0.8*max(experimental_variogram$gamma), median(experimental_variogram$gamma)))
+        initial_sill = mean(c(max(experimental_variogram$gamma), median(experimental_variogram$gamma)))
     } else {
         initial_sill = start_vals[3]
     }
-
+    
     # Determine what should be automatically fitted and what should be fixed
     # Nugget
     if(!is.na(fix.values[1]))
@@ -106,13 +108,13 @@ autofitVariogram = function(formula, input_data, input_vgm = NULL, model = c("Sp
                         model = vgm(psill=psill, model=model, range=range,
                                     nugget=nugget,kappa = kappa),
                         fit.ranges = c(fit_range), fit.sills = c(fit_nugget, fit_sill),
-						debug.level = 0),
+						debug.level = 0), 
 				TRUE)
 		if("try-error" %in% class(obj)) {
 			#print(traceback())
-			warning("An error has occured during variogram fitting. Used:\n",
-					"\tnugget:\t", nugget,
-					"\n\tmodel:\t", model,
+			warning("An error has occured during variogram fitting. Used:\n", 
+					"\tnugget:\t", nugget, 
+					"\n\tmodel:\t", model, 
 					"\n\tpsill:\t", psill,
 					"\n\trange:\t", range,
 					"\n\tkappa:\t",ifelse(kappa == 0, NA, kappa),
@@ -127,7 +129,7 @@ autofitVariogram = function(formula, input_data, input_vgm = NULL, model = c("Sp
 	SSerr_list = c()
 	vgm_list = list()
 	counter = 1
-
+	
 	for(m in test_models) {
 		if(m != "Mat" && m != "Ste") {        # If not Matern and not Stein
 			model_fit = getModel(initial_sill - initial_nugget, m, initial_range, kappa = 0, initial_nugget, fit_range, fit_sill, fit_nugget, verbose = verbose)
@@ -163,15 +165,15 @@ autofitVariogram = function(formula, input_data, input_vgm = NULL, model = c("Sp
 		cat("Selected:\n")
 		print(vgm_list[[which.min(SSerr_list)]])
 		cat("\nTested models, best first:\n")
-		tested = data.frame("Tested models" = sapply(vgm_list, function(x) as.character(x[2,1])),
-								kappa = sapply(vgm_list, function(x) as.character(x[2,4])),
+		tested = data.frame("Tested models" = sapply(vgm_list, function(x) as.character(x[2,1])), 
+								kappa = sapply(vgm_list, function(x) as.character(x[2,4])), 
 								"SSerror" = SSerr_list)
 		tested = tested[order(tested$SSerror),]
 		print(tested)
 	}
 
 	result = list(exp_var = experimental_variogram, var_model = vgm_list[[which.min(SSerr_list)]], sserr = min(SSerr_list))
-	class(result) = c("autofitVariogram","list")
+	class(result) = c("autofitVariogram","list")    
 
     return(result)
 }
