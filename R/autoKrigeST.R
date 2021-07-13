@@ -1,29 +1,47 @@
-# last revision: 2020/01/22
+# last revision: 07/13/2021
+#' Cross-validation of spatiotemporal Kriging
+#'
+#' @param data a `ST*DF`-class object 
+#' @param fold_dim character. the dimension at which you want to cross-validate (spatial, temporal, and random)
+#' @param nfold integer. the number of folds. 10 as the default.
+#' @return The cross-validated spatiotemporal Kriging results.
+#' @examples
+#' data(air)
+#' deair = STFDF(stations, dates, data.frame(PM10 = as.vector(air)))
+#' deair_sf = st_as_stars(deair) %>%
+#'     st_transform('+proj=longlat +ellps=sphere')
+#' deair_sf = st_transform(deair_sf, 3857)
+#' deair_r = as(deair_sf, 'STFDF')
+#' deair_r@sp@proj4string = CRS('+init=epsg:3857')
+#' deair_rs = deair_r[,3751:3800]
 
-
+#' ## autoKrigeST.cv test
+#' akst = autoKrigeST(formula  PM10~1, data = deair_rs, 
+#'                          cutoff = 300000, width = 30000, tlags = 0:7, cores = 8)
 autoKrigeST = function(formula,
                        input_data, new_data,
                        type_stv = 'sumMetric',
                        data_variogram = input_data, block = 0,
-                     model = c("Sph", "Exp", "Gau", "Ste"),
-                     kappa = c(0.05, seq(0.2, 2, 0.1), 5, 10),
-						         fix.values = c(NA,NA,NA),
-                     #remove_duplicates = TRUE,
-                     newdata_mode = 'rect',
-						         newdata_npoints = 1e4,
-                     verbose = FALSE,
-						         GLS.model = NA,
-						         tlags=0:6,
-						         cutoff=2e4,
-						         width=5e2,
-						         aniso_method='vgm',
-						         type_joint='Exp',
-						         prodsum_k=0.25,
-						         surface = FALSE,
-						         start_vals = c(NA,NA,NA),
-						         miscFitOptions = list(),
-                     measurement_error = c(0,0,0),
-						         cores = 1, ...)
+                      model = c("Sph", "Exp", "Gau", "Ste"),
+                      kappa = c(0.05, seq(0.2, 2, 0.1), 5, 10),
+                      fix.values = c(NA,NA,NA),
+                      #remove_duplicates = TRUE,
+                      newdata_mode = 'rect',
+                      newdata_npoints = 3e3,
+                      verbose = FALSE,
+                      GLS.model = NA,
+                      tlags = 0:6,
+                      cutoff = 2e4,
+                      width = 5e2,
+                      forward = 6,
+                      aniso_method = 'vgm',
+                      type_joint = 'Exp',
+                      prodsum_k = 0.25,
+                      surface = FALSE,
+                      start_vals = c(NA,NA,NA),
+                      miscFitOptions = list(),
+                      measurement_error = c(0,0,0),
+                      cores = 1, ...)
 # This function performs an automatic Kriging on the data in input_data
 {
   	if(inherits(formula, "STIDF") | inherits(formula, "STFDF") | inherits(formula, "STSDF"))
@@ -62,7 +80,7 @@ autoKrigeST = function(formula,
     col_name = as.character(formula)[2]
     if(length(unique(input_data[[col_name]])) == 1) stop(sprintf("All data in attribute \'%s\' is identical and equal to %s\n   Can not interpolate this data", col_name, unique(input_data[[col_name]])[1]))
 
-  	if(missing(new_data)) new_data = create_new_data.ST(input_data, form = formula, gen_mode = newdata_mode, npoints = newdata_npoints)
+  	if(missing(new_data)) new_data = create_new_data.ST(input_data, form = formula, gen_mode = newdata_mode, npoints = newdata_npoints, forward = forward)
 
   	## Perform some checks on the projection systems of input_data and new_data
   	p4s_obj1 = proj4string(input_data@sp)

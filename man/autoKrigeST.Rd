@@ -13,7 +13,7 @@
                    kappa = c(0.05, seq(0.2, 2, 0.1), 5, 10),
 				   fix.values = c(NA, NA, NA),
                    newdata_mode = 'rect',
-				   newdata_npoints = 1e4,
+				   newdata_npoints = 3e3,
                    verbose = FALSE,
                    GLS.model = NA,
           		   tlags = 0:6,
@@ -35,11 +35,11 @@
 				universal kriging, suppose 'z' is linearly dependent on 'x'
 				and 'y', use the formula 'z~x+y'.}
     \item{input_data}{An object of the
-	            \link[spacetime]{STI-class} or \link[spacetime]{STF-class} containing the data to be interpolated.}
-    \item{new_data}{A \link[spacetime]{STI-class} or \link[spacetime]{STF-class} object containing the prediction locations.
+	            \link[spacetime]{STI}, \link[spacetime]{STS} or \link[spacetime]{STF} containing the data to be interpolated.}
+    \item{new_data}{A \link[spacetime]{STI} or \link[spacetime]{STF} object containing the prediction locations.
                 Must not contain NA's. If this object is not provided
 				a default is calculated. This is done by taking the convex hull of \code{input_data} and
-				placing around 5000 gridcells in that convex hull.}
+				placing around 3000 gridcells in that convex hull.}
     \item{data_variogram}{An optional way to provide a different dataset for
                 the building of the variogram then for the spatial
                 interpolation. }
