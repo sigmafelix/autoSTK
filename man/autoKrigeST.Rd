@@ -19,6 +19,7 @@
           		   tlags = 0:6,
           		   cutoff = 2e4,
           		   width = 5e2,
+                   nmax = Inf,
           		   aniso_method = 'vgm',
           		   type_joint = 'Exp',
           		   prodsum_k = 0.25,
@@ -59,6 +60,7 @@
     \item{tlags}{The range of time lags for fitting STVariogram}
     \item{cutoff}{The maximum range of spatial lags for fitting STVariogram}
     \item{width}{The interval for fitting spatial part of the STVariogram}
+    \item{nmax}{The maximum number of spatiotemporal neighborhood to make predictions (not stable)}
     \item{aniso_method}{The method to estimate the spatiotemporal anisotropy (one of \code{linear}, \code{range}, \code{vgm}, or \code{metric})}
     \item{type_joint}{The type of theoretical model of the joint spatiotemporal variogram. Only applied when \code{joint} type of spatiotemporal variogram is chosen.}
     \item{prodsum_k}{k value for \code{stModel} in \link[gstat]{vgmST} is \code{productSum}. See \link[gstat]{vgmST} for more.}

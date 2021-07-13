@@ -17,6 +17,7 @@ autoKrigeST.cv(
   tlags = 0:6,
   cutoff = 20000,
   width = 500,
+  nmax = ceiling(prod(dim(data)) * 0.01),
   aniso_method = "vgm",
   type_joint = "Exp",
   prodsum_k = 0.25,

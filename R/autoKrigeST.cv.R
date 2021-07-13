@@ -5,6 +5,7 @@
 #' @param data a `ST*DF`-class object 
 #' @param fold_dim character. the dimension at which you want to cross-validate (spatial, temporal, and random)
 #' @param nfold integer. the number of folds. 10 as the default.
+#' @param ... inherits arguments of `autoKrigeST`
 #' @return The cross-validated spatiotemporal Kriging results.
 #' @examples
 #' data(air)
@@ -37,6 +38,7 @@ autoKrigeST.cv = function(data, fold_dim,
                           tlags=0:6,
 						  cutoff=2e4,
 						  width=5e2,
+                          nmax = Inf,
 						  aniso_method='vgm',
 						  type_joint='Exp',
 						  prodsum_k=0.25,
@@ -52,7 +54,7 @@ autoKrigeST.cv = function(data, fold_dim,
     
     len_time = length(data@time)
     len_space = length(data@sp)
-    #set.seed(seed)
+    set.seed(seed)
     get_data_fold = function(data, dimension = fold_dim, nfold){
         data_fold = vector('list', length = nfold)
         data_validation = vector('list', length = nfold)
@@ -159,6 +161,7 @@ autoKrigeST.cv = function(data, fold_dim,
                     tlags = tlags,
                     cutoff = cutoff,
                     width = width,
+                    nmax = nmax,
                     prodsum_k = prodsum_k,
                     start_vals = start_vals,
                     miscFitOptions = miscFitOptions,

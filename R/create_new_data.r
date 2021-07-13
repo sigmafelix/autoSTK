@@ -57,7 +57,7 @@ create_new_data.ST <- function(obj, form = NULL, gen_mode = 'chull', npoints = 1
 	    ts.base <- ts.base + 1:forward
 	  }
 	}
-	dat = data.frame(dat = rep(NA, length(sp.base) * length(ts.base)))
+	dat = data.frame(dat = rep(0, length(sp.base) * length(ts.base)))
 	colnames(dat) <- as.character(form)[2]
 	new_data_ST <- STFDF(sp = sp.base,
 	                     time = ts.base,
