@@ -1,6 +1,6 @@
 ### plot.autofitVariogram.R
 ### Original Author: Paul Hiemstra (paul@numbertheory.nl)
-### Partial fix: Felix Song (henry385@snu.ac.kr)
+### Partial fix: Insang Song (sigmafelix@hotmail.com)
 ### Fix
 #### Easy implementation of the main title
 #### Change of the parameter direction to the numeric vector of length 3
