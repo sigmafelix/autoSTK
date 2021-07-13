@@ -4,7 +4,8 @@
 - Includes spatiotemporal variogram fitting and Kriging analysis
 
 # Installation
-`remotes::install_github('sigmafelix/autoSTK')` in R (The `remotes` package is required)
+- `remotes::install_github('sigmafelix/autoSTK')` in R (The `remotes` package is required)
+- Before you install the package, please make it sure you have `gstat`, `spacetime`, and `automap` packages in your machine
 
 # Supported functions
 - `autofitVariogramST`: automatically fit the spatiotemporal variogram
@@ -22,3 +23,7 @@
 
 # Please note
 - Some functions related to `npsp` package will retire as the `npsp` package is no longer available on CRAN.
+
+# Working example
+- Soon to be added... 
+- Please consult the help page of the main functions `autoKrigeST` and `autoKrigeST.cv`.
