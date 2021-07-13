@@ -22,6 +22,7 @@ autoKrigeST = function(formula,
 						         surface = FALSE,
 						         start_vals = c(NA,NA,NA),
 						         miscFitOptions = list(),
+                     measurement_error = c(0,0,0),
 						         cores = 1, ...)
 # This function performs an automatic Kriging on the data in input_data
 {
@@ -89,6 +90,7 @@ autoKrigeST = function(formula,
                       type_joint=type_joint,
                       prodsum_k=prodsum_k,
                       surface = surface,
+                      measurement_error = measurement_error,
                       cores = cores)
 
     ## Perform the interpolation

@@ -1,11 +1,11 @@
 Package: autoSTK
 Type: Package
 Title: Automatic spatio-temporal kriging functionality for automap package
-Version: 1.0.0
+Version: 1.0.1
 Author: Insang Song
-Maintainer: Insang Song <isong@uoregon.edu>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Maintainer: Insang Song <sigmafelix@hotmail.com>
+Description: Automatic spatio-temporal Kriging 
+    This package offers several functions to fit spatio-temporal variograms in terms of minimal SSE. Some candidate models are applied in default, and users can choose what theoretical models will be applied.
+License: MIT
 Encoding: UTF-8
 LazyData: true

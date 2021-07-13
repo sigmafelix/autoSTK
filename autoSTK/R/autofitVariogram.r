@@ -1,28 +1,64 @@
 autofitVariogram = function(formula, input_data, input_vgm = NULL, model = c("Sph", "Exp", "Gau", "Ste"),
-                                kappa = c(0.05, seq(0.2, 2, 0.1), 5, 10), fix.values = c(NA,NA,NA),
-								verbose = FALSE, GLS.model = NA, start_vals = c(NA,NA,NA),
-                                miscFitOptions = list(),...)
+                            kappa = c(0.05, seq(0.1, 2, 0.1), 5, 10), fix.values = c(NA,NA,NA),
+								            verbose = FALSE, GLS.model = NA, start_vals = c(NA,NA,NA), measurement_error = 0,
+                            boundaries = c(2,4,6,9,12,15,25,35,50,65,80,100) * 50000,
+                            miscFitOptions = list(),...)
 # This function automatically fits a variogram to input_data
 {
+    getModel = function(psill, model, range, kappa, nugget, fit_range, fit_sill, fit_nugget, measurement_error = 0, verbose){
+        if(verbose) debug.level = 1 else debug.level = 0
+        if(model == "Pow") {
+            warning("Using the power model is at your own risk, read the docs of autofitVariogram for more details.")
+            if(is.na(start_vals[1])) nugget = 0
+            if(is.na(start_vals[2])) range = 1    # If a power mode, range == 1 is a better start value
+            if(is.na(start_vals[3])) sill = 1
+        }
+        vgm_try = vgm(psill = psill, model = model, range = range,
+                      nugget = nugget, kappa = kappa, Err = measurement_error)
+        obj = try(fit.variogram(experimental_variogram,
+                                model = vgm_try,
+                                fit.ranges = c(fit_range), 
+                                fit.sills = c(fit_nugget, fit_sill),
+                                debug.level = 0), 
+                  TRUE)
+            if("try-error" %in% class(obj)) {
+                #print(traceback())
+                warning("An error has occured during variogram fitting. Used:\n",
+                        "\tnugget:\t", nugget,
+                        "\n\tmodel:\t", model,
+                        "\n\tpsill:\t", psill,
+                        "\n\trange:\t", range,
+                        "\n\tkappa:\t",ifelse(kappa == 0, NA, kappa),
+                        "\n  as initial guess. This particular variogram fit is not taken into account. \nGstat error:\n", obj)
+                return(NULL)
+            } else {
+              return(obj)
+            }
+    }
 
+  # if there is an input data
   if (!is.null(input_data)){
   # Create boundaries
-  if (grepl('(Spatial|ST).*', class(input_data))) {
-    longlat = !is.projected(input_data)
-    if(is.na(longlat)) {longlat = FALSE}
-    diagonal = spDists(t(bbox(input_data)), longlat = longlat)[1:2]                # 0.35 times the length of the central axis through the area
-  } else {
-    longlat = st_is_longlat(input_data)
-    diagonal = st_as_sfc(st_bbox(input_data))
-    diagonal = st_cast(diagonal, 'POINT')
-    diagonal = st_distance(diagonal[c(1,3)], longlat = longlat)[2,1]
-    diagonal = as.vector(diagonal)
+  # if ST* or Spatial* object
+    if (sum(grepl('(Spatial|ST).*', class(input_data))) > 0) {
+      longlat = !is.projected(input_data)
+      if(is.na(longlat)) {
+          longlat = FALSE
+      }
+      diagonal = spDists(t(bbox(input_data)), longlat = longlat)[2]               
+    } else {
+      longlat = st_is_longlat(input_data)
+      diagonal = st_as_sfc(st_bbox(input_data))
+      diagonal = st_cast(diagonal, 'POINT')
+      diagonal = st_distance(diagonal[c(1,3)], longlat = longlat)[2,1]
+      diagonal = as.vector(diagonal)
+    }
+    if (is.null(boundaries)){
+      boundaries = c(2,4,6,9,12,15,25,35,50,65,80,100) * diagonal * 0.35/100         # # 0.35 times the length of the central axis through the area, Boundaries for the bins in km
+    }
   }
-  boundaries = c(2,4,6,9,12,15,25,35,50,65,80,100) * diagonal * 0.35/100         # Boundaries for the bins in km
-
-  }
-    if (!is.null(input_data) & is.null(input_vgm)){
-
+    
+  if (!is.null(input_data) & is.null(input_vgm)){
 
       # Check for anisotropy parameters
       if('alpha' %in% names(list(...))) warning('Anisotropic variogram model fitting not supported, see the documentation of autofitVariogram for more details.')
@@ -60,12 +96,11 @@ autofitVariogram = function(formula, input_data, input_vgm = NULL, model = c("Sp
     }
 
 
-
-    if (!is.null(model) & !is.null(input_vgm)){
+    if (!is.null(model) | !is.null(input_vgm)){
 
       # set initial values
       if(is.na(start_vals[1])) {  # Nugget
-        initial_nugget = min(experimental_variogram$gamma)
+        initial_nugget = min(experimental_variogram$gamma) * 0.5
       } else {
         initial_nugget = start_vals[1]
       }
@@ -75,7 +110,7 @@ autofitVariogram = function(formula, input_data, input_vgm = NULL, model = c("Sp
         initial_range = start_vals[2]
       }
       if(is.na(start_vals[3])) { # Sill
-        initial_sill = mean(c(max(experimental_variogram$gamma), median(experimental_variogram$gamma)))
+        initial_sill = max(experimental_variogram$gamma)
       } else {
         initial_sill = start_vals[3]
       }
@@ -86,50 +121,30 @@ autofitVariogram = function(formula, input_data, input_vgm = NULL, model = c("Sp
       {
           fit_nugget = FALSE
           initial_nugget = fix.values[1]
-      } else
+      } else {
           fit_nugget = TRUE
-
+      }
       # Range
       if(!is.na(fix.values[2]))
       {
           fit_range = FALSE
           initial_range = fix.values[2]
-      } else
+      } else {
           fit_range = TRUE
-
+      }
       # Partial sill
       if(!is.na(fix.values[3]))
       {
           fit_sill = FALSE
           initial_sill = fix.values[3]
-      } else
+      } else {
           fit_sill = TRUE
-
-      getModel = function(psill, model, range, kappa, nugget, fit_range, fit_sill, fit_nugget, verbose){
-          if(verbose) debug.level = 1 else debug.level = 0
-          if(model == "Pow") {
-              warning("Using the power model is at your own risk, read the docs of autofitVariogram for more details.")
-              if(is.na(start_vals[1])) nugget = 0
-              if(is.na(start_vals[2])) range = 1    # If a power mode, range == 1 is a better start value
-              if(is.na(start_vals[3])) sill = 1
-              }
-              obj = try(fit.variogram(experimental_variogram,
-                        model = vgm(psill=psill, model=model, range=range,
-                        nugget=nugget,kappa = kappa),
-                        fit.ranges = c(fit_range), fit.sills = c(fit_nugget, fit_sill),
-                        debug.level = 0), TRUE)
-              if("try-error" %in% class(obj)) {
-                  #print(traceback())
-                  warning("An error has occured during variogram fitting. Used:\n",
-                          "\tnugget:\t", nugget,
-                          "\n\tmodel:\t", model,
-                          "\n\tpsill:\t", psill,
-                          "\n\trange:\t", range,
-                          "\n\tkappa:\t",ifelse(kappa == 0, NA, kappa),
-                          "\n  as initial guess. This particular variogram fit is not taken into account. \nGstat error:\n", obj)
-                  return(NULL)
-              } else return(obj)
-          }
+      }
+      
+      if (measurement_error != 0){
+          #initial_nugget = min(initial_nugget - measurement_error, measurement_error)
+          initial_sill = max(initial_sill - measurement_error, measurement_error)
+      }
 
 
           # Automatically testing different models, the one with the smallest sums-of-squares is chosen
@@ -140,14 +155,14 @@ autofitVariogram = function(formula, input_data, input_vgm = NULL, model = c("Sp
 
           for(m in test_models) {
               if(m != "Mat" && m != "Ste") {        # If not Matern and not Stein
-                  model_fit = getModel(initial_sill - initial_nugget, m, initial_range, kappa = 0, initial_nugget, fit_range, fit_sill, fit_nugget, verbose = verbose)
+                  model_fit = getModel(initial_sill - initial_nugget, m, initial_range, kappa = 0, initial_nugget, fit_range, fit_sill, fit_nugget, verbose = verbose, measurement_error = measurement_error)
                   if(!is.null(model_fit)) {	# skip models that failed
                       vgm_list[[counter]] = model_fit
                       SSerr_list = c(SSerr_list, attr(model_fit, "SSErr"))}
                   counter = counter + 1
               } else {                 # Else loop also over kappa values
                   for(k in kappa) {
-                      model_fit = getModel(initial_sill - initial_nugget, m, initial_range, k, initial_nugget, fit_range, fit_sill, fit_nugget, verbose = verbose)
+                      model_fit = getModel(initial_sill - initial_nugget, m, initial_range, k, initial_nugget, fit_range, fit_sill, fit_nugget, verbose = verbose, measurement_error = measurement_error)
                       if(!is.null(model_fit)) {
                           vgm_list[[counter]] = model_fit
                           SSerr_list = c(SSerr_list, attr(model_fit, "SSErr"))}

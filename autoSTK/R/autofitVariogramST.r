@@ -11,6 +11,9 @@
 ####               should be one of c('range','linear','vgm')
 #### type_joint: model type of spatio-temporal joint process. only used when typestv is metric-variant type
 #### prodsum_k: positive numeric. only used for productSum or productSumOld
+#### surface: whether plot the empirical spatiotemporal variogram or not
+#### measurement_error: measurement error variance component. Refer to ?gstat::vgm; the input vector includes spatial, temporal, and joint measurement error components.
+#### cores: passed to variogramST. The number of cores to be used to compute semivariogram values
 autofitVariogramST <- function(
                        stf,
                        formula,
@@ -25,6 +28,7 @@ autofitVariogramST <- function(
                        type_joint='Exp',
                        prodsum_k=NULL,
                        surface = FALSE,
+                       measurement_error = c(0,0,0),
                        cores = 1
                        ){
 
@@ -43,10 +47,13 @@ autofitVariogramST <- function(
     stva.sp.fit <- autofitVariogram(formula=NULL, verbose=TRUE,
                                     input_data = NULL,
                                     input_vgm = stva.sp,
-                                    model = NULL)
+                                    measurement_error = measurement_error[1],
+                                    model = NULL,
+                                    )
     stva.ts.fit <- autofitVariogram(formula=NULL, verbose=TRUE,
                                     input_data = NULL,
                                     input_vgm = stva.ts,
+                                    measurement_error = measurement_error[2],
                                     model = NULL)
     aniso_method <- 'linear'
   } else {
@@ -60,10 +67,12 @@ autofitVariogramST <- function(
     stva.sp.fit <- autofitVariogram(formula=NULL, verbose=TRUE,
                                     input_data = NULL,
                                     input_vgm = stva.sp,
+                                    measurement_error = measurement_error[1],
                                     model = candidate_model)
     stva.ts.fit <- autofitVariogram(formula=NULL, verbose=TRUE,
                                     input_data = NULL,
                                     input_vgm = stva.ts,
+                                    measurement_error = measurement_error[2],
                                     model = candidate_model)
 
   }
@@ -81,10 +90,13 @@ autofitVariogramST <- function(
                        temporalVgm = stva.ts.fit$var_model)
   if (is.null(guess_nugget)){
     guess_nugget <- max(min(stva$gamma), min(stva$gamma) - 0.5 * (min(stva.sp$gamma) + min(stva.ts$gamma)))
+    guess_nugget = ifelse(guess_nugget < 0, 0, guess_nugget)
   }
   if (is.null(guess_psill)){
-    guess_psill_c1 <- 0.5 *(max(stva$gamma) - max(stva.sp$gamma, stva.ts$gamma) )
-    guess_psill_c2 <- 0.5* (stva$gamma[length(stva$gamma)] - max(stva.sp$gamma, stva.ts$gamma))
+    guess_psill_c1 <- ifelse(0.5 *(max(stva$gamma) - max(stva.sp$gamma, stva.ts$gamma) ) < 0, 
+                            min(stva$gamma) * 2, 0.5 * max(stva$gamma) - max(stva.sp$gamma, stva.ts$gamma))
+    guess_psill_c2 <- ifelse(0.5* (stva$gamma[length(stva$gamma)] - max(stva.sp$gamma, stva.ts$gamma)) < 0,
+                            min(stva$gamma) * 2, 0.5* (stva$gamma[length(stva$gamma)] - max(stva.sp$gamma, stva.ts$gamma)))
     if (typestv == 'metric'){
 		guess_psill <- 0.5 * max(stva.sp$gamma)
 	} else {
@@ -94,7 +106,8 @@ autofitVariogramST <- function(
   sill <- max(stva$gamma)*0.5
   stv.jo <- vgm(model = type_joint,
                 psill = guess_psill, nugget = guess_nugget,
-                range = 0.75 * sqrt((stv.ani)^2 + (max(stva$spacelag)^2)))
+                Err = measurement_error[3],
+                range = 0.25 * sqrt((stv.ani)^2 + (stv.ani * max(stva$spacelag)^2)))
 
 	if (is.null(prodsum_k)){
 		prodsum_k <- 4/max(stva.sp$gamma)
@@ -126,6 +139,8 @@ autofitVariogramST <- function(
   if (any(is.infinite(joint.upper))) joint.upper[which(is.infinite(joint.upper))] <- 1e4
   if (any(is.na(joint.lower))) joint.lower[which(is.na(joint.lower))] <- 0
   if (any(is.na(joint.upper))) joint.upper[which(is.na(joint.upper))] <- 1e4
+  if (any(joint.lower < 0)) joint.lower[which(joint.lower < 0)] <- 0
+  if (any(joint.upper < 0)) joint.upper[which(joint.upper < 0)] <- 1e2
 
   stva.joint <- fit.StVariogram(object = stva, model = variost.mod, stAni = stv.ani,
                                 method='L-BFGS-B',
