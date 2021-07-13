@@ -14,7 +14,6 @@ setSTI <-
   function(stf, formula, tlags=0:6, cutoff=30000, width=1000,
            assumeRegular=TRUE, pseudo=1, logarithm = FALSE, na.omit=TRUE,
            wireframe=TRUE, plot3d=FALSE, cores = 1) {
-    library(rgl)
     formula <- as.formula(formula)
     ncol.stf <- (cutoff / width) + 1
     nrow.stf <- max(tlags)
@@ -53,7 +52,7 @@ setSTI <-
       apo.pmsub.stf.mat <- matrix(apo.pmsub.stf$gamma,
                                   byrow=FALSE,
                                   nrow=nrow.stf, ncol=ncol.stf)
-      persp.stf <- persp3d(x=unique(apo.pmsub.stf$spacelag),
+      persp.stf <- rgl::persp3d(x=unique(apo.pmsub.stf$spacelag),
                            y=unique(apo.pmsub.stf$timelag),
                            z=apo.pmsub.stf.mat,
                            color='green3')
