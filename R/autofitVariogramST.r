@@ -29,7 +29,8 @@ autofitVariogramST <- function(
                        prodsum_k=NULL,
                        surface = FALSE,
                        measurement_error = c(0,0,0),
-                       cores = 1
+                       cores = 1,
+                       verbose = FALSE
                        ){
 
   stva <- setSTI(stf=stf,
@@ -44,13 +45,13 @@ autofitVariogramST <- function(
                                     bound = cutoff)
     stva.ts <- marginal.variogramST(stva,
                                     spatial = FALSE)
-    stva.sp.fit <- autofitVariogram(formula=NULL, verbose=TRUE,
+    stva.sp.fit <- autofitVariogram(formula=NULL, verbose=verbose,
                                     input_data = NULL,
                                     input_vgm = stva.sp,
                                     measurement_error = measurement_error[1],
                                     model = NULL,
                                     )
-    stva.ts.fit <- autofitVariogram(formula=NULL, verbose=TRUE,
+    stva.ts.fit <- autofitVariogram(formula=NULL, verbose=verbose,
                                     input_data = NULL,
                                     input_vgm = stva.ts,
                                     measurement_error = measurement_error[2],
@@ -64,12 +65,12 @@ autofitVariogramST <- function(
     stva.sp$np <- as.numeric(stva.sp$np)
     stva.ts$np <- as.numeric(stva.ts$np)
 
-    stva.sp.fit <- autofitVariogram(formula=NULL, verbose=TRUE,
+    stva.sp.fit <- autofitVariogram(formula=NULL, verbose=verbose,
                                     input_data = NULL,
                                     input_vgm = stva.sp,
                                     measurement_error = measurement_error[1],
                                     model = candidate_model)
-    stva.ts.fit <- autofitVariogram(formula=NULL, verbose=TRUE,
+    stva.ts.fit <- autofitVariogram(formula=NULL, verbose=verbose,
                                     input_data = NULL,
                                     input_vgm = stva.ts,
                                     measurement_error = measurement_error[2],

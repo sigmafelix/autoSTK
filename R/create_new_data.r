@@ -41,26 +41,29 @@ create_new_data.ST <- function(obj, form = NULL, gen_mode = 'chull', npoints = 1
 	if (tunit == 'days'){
 	  ts.base <- sort(unique(index(obj@time)))
 	  ts.base <- as.Date(ts.base)[length(ts.base)]
-	} else if (tunit != 'days' & tunit != 'unknown'){
+	} else if (tunit != 'days' & tunit != 'unknown') {
 	  ts.base <- sort(unique(index(obj@time)))
 	  ts.base <- ts.base[length(ts.base)]
 	}
 	sp.base <- create_new_data(sp.base, gen_mode = gen_mode, npoints = npoints)
 	sp.base <- spTransform(sp.base, proj4string(obj@sp))
-	if (!is.null(forward)){
+	if (!is.null(forward)) {
 	  # TODO: temporal unit-dependent setting
-	  if (tunit == 'hours'){
+	  if (tunit == 'hours') {
 	    ts.base <- tunit + seq(0, 3600 * forward, 3600)
 	  } else if (tunit == 'minutes') {
 	    ts.base <- ts.base + seq(0, 60 * forward, 60)
 	  } else {
 	    ts.base <- ts.base + 1:forward
 	  }
+	} else {
+		ts.base <- as.Date(sort(unique(index(obj@time))))
 	}
-	dat = data.frame(dat = rep(0, length(sp.base) * length(ts.base)))
-	colnames(dat) <- as.character(form)[2]
+	dat = data.frame(dat = rep(1, length(sp.base) * length(ts.base)))
+	colnames(dat)[1] <- as.character(form)[2]
 	new_data_ST <- STFDF(sp = sp.base,
 	                     time = ts.base,
 	                     data = dat)
+	new_data_ST@sp@proj4string = obj@sp@proj4string
 	return(new_data_ST)
 }

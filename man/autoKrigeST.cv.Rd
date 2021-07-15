@@ -17,7 +17,7 @@ autoKrigeST.cv(
   tlags = 0:6,
   cutoff = 20000,
   width = 500,
-  nmax = ceiling(prod(dim(data)) * 0.01),
+  nmax = Inf,
   aniso_method = "vgm",
   type_joint = "Exp",
   prodsum_k = 0.25,
@@ -35,6 +35,8 @@ autoKrigeST.cv(
 \item{fold_dim}{character. the dimension at which you want to cross-validate (spatial, temporal, and random)}
 
 \item{nfold}{integer. the number of folds. 10 as the default.}
+
+\item{...}{inherits arguments of `autoKrigeST`}
 }
 \value{
 The cross-validated spatiotemporal Kriging results.

@@ -14,11 +14,11 @@
 				   fix.values = c(NA, NA, NA),
                    newdata_mode = 'rect',
 				   newdata_npoints = 3e3,
-                   verbose = FALSE,
                    GLS.model = NA,
           		   tlags = 0:6,
           		   cutoff = 2e4,
           		   width = 5e2,
+                   predict_chunk = NULL,
                    nmax = Inf,
           		   aniso_method = 'vgm',
           		   type_joint = 'Exp',
@@ -26,6 +26,7 @@
           		   start_vals = c(NA, NA, NA),
                    miscFitOptions = list(),
                    cores = 1,
+                   verbose = TRUE,
                    ...)
                     }
 \arguments{
@@ -54,13 +55,13 @@
                  the value to NA means that the value is not fixed. Is passed on to autofitVariogram.}
     \item{newdata_mode}{How the new data will be generated in shape. One of "rect" (rectangle) and "hull" (convex hull)}
     \item{newdata_npoints}{The number of points will be generated in the extent of the new data}
-	\item{verbose}{logical, if TRUE autoKrige will give extra information on the fitting process}
 	\item{GLS.model}{If a variogram model is passed on through this parameter a Generalized Least Squares
 				 sample variogram is calculated.}
     \item{tlags}{The range of time lags for fitting STVariogram}
     \item{cutoff}{The maximum range of spatial lags for fitting STVariogram}
     \item{width}{The interval for fitting spatial part of the STVariogram}
     \item{nmax}{The maximum number of spatiotemporal neighborhood to make predictions (not stable)}
+    \item{predict_chunk}{The number of chunks to predict values in `new_data`. If this value is not `NULL`, the new data will be split into chunks in size of `predict_chunk` and the prediction will be done per chunk.}
     \item{aniso_method}{The method to estimate the spatiotemporal anisotropy (one of \code{linear}, \code{range}, \code{vgm}, or \code{metric})}
     \item{type_joint}{The type of theoretical model of the joint spatiotemporal variogram. Only applied when \code{joint} type of spatiotemporal variogram is chosen.}
     \item{prodsum_k}{k value for \code{stModel} in \link[gstat]{vgmST} is \code{productSum}. See \link[gstat]{vgmST} for more.}
@@ -70,6 +71,7 @@
     \item{miscFitOptions}{Additional options to set the behavior of \link{autofitVariogram}. For details see the
                  documentation of \link{autofitVariogram}.}
     \item{cores}{The number of cores to be used for estimating \link[gstat]{variogramST}. See \link[gstat]{variogramST} for more detail.}
+  	\item{verbose}{logical, if TRUE autoKrige will give extra information on the fitting process. Default is TRUE.}
 	\item{...}{arguments that are passed on to the gstat function \code{\link[gstat]{krigeST}}.}
 }
 \details{

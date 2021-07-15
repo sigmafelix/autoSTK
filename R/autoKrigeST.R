@@ -28,13 +28,13 @@ autoKrigeST = function(formula,
                       #remove_duplicates = TRUE,
                       newdata_mode = 'rect',
                       newdata_npoints = 3e3,
-                      verbose = FALSE,
                       GLS.model = NA,
                       tlags = 0:6,
                       cutoff = 2e4,
                       width = 5e2,
                       forward = 6,
                       nmax = Inf,
+                      predict_chunk = NULL,
                       aniso_method = 'vgm',
                       type_joint = 'Exp',
                       prodsum_k = 0.25,
@@ -42,7 +42,9 @@ autoKrigeST = function(formula,
                       start_vals = c(NA,NA,NA),
                       miscFitOptions = list(),
                       measurement_error = c(0,0,0),
-                      cores = 1, ...)
+                      cores = 1, 
+                      verbose = TRUE,
+                      ...)
 # This function performs an automatic Kriging on the data in input_data
 {
   	if(inherits(formula, "STIDF") | inherits(formula, "STFDF") | inherits(formula, "STSDF"))
@@ -110,19 +112,48 @@ autoKrigeST = function(formula,
                       prodsum_k=prodsum_k,
                       surface = surface,
                       measurement_error = measurement_error,
-                      cores = cores)
+                      cores = cores,
+                      verbose = verbose)
 
-    ## Perform the interpolation
+    if (!is.null(predict_chunk)) {
+      new_data_sti = as(new_data, 'STIDF')
+      len_new_data = dim(new_data_sti)[1]
+      len_chunks = ceiling(len_new_data / predict_chunk)
+      len_indices_start = rep(1, len_chunks) + (predict_chunk * seq(0, len_chunks - 1, 1))
+      len_indices_end = len_indices_start + predict_chunk - 1
+      len_indices_end[length(len_indices_end)] = len_new_data
+      
+      krige_results_l = vector('list', length = len_chunks)    
+      pb = txtProgressBar(style = 3, max = len_chunks)
+
+      for (i in 1:len_chunks) {
+        krige_results_l[[i]] = krigeST(formula = formula,
+                          data = input_data,
+                          newdata = new_data_sti[len_indices_start[i]:len_indices_end[i],],
+                          nmax = nmax,
+                          computeVar = TRUE,
+                          bufferNmax = 2,
+                          modelList = variogram_object$jointSTV,
+                ...)
+        setTxtProgressBar(pb, i)
+
+      }
+      close(pb)
+
+      krige_results = do.call('rbind', krige_results_l)
+      krige_result = as(krige_results, 'STFDF')
+    } else {
+    ## Perform the interpolation by chunk
+
     krige_result = krigeST(formula = formula,
                       data = input_data,
                       newdata = new_data,
                       nmax = nmax,
-                      bufferNmax = 1.25,
+                      computeVar = TRUE,
+                      bufferNmax = 2,
                       modelList = variogram_object$jointSTV,
 					  ...)
-
-    krige_result@data$var.stdev <- sqrt(as.vector(krige_result@data[,'var1.pred']))
-
+    }
     # Aggregate the results into an autoKrige object
     result = list(krige_output = krige_result,
                   var_model = variogram_object$jointSTV)
