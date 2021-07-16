@@ -59,8 +59,8 @@
     \item{tlags}{The range of time lags for fitting STVariogram}
     \item{cutoff}{The maximum range of spatial lags for fitting STVariogram}
     \item{width}{The interval for fitting spatial part of the STVariogram}
-    \item{nmax}{The maximum number of spatiotemporal neighborhood to make predictions (not stable)}
     \item{predict_chunk}{The number of chunks to predict values in `new_data`. If this value is not `NULL`, the new data will be split into chunks in size of `predict_chunk` and the prediction will be done per chunk.}
+    \item{nmax}{The maximum number of spatiotemporal neighborhood to make predictions (not stable)}
     \item{aniso_method}{The method to estimate the spatiotemporal anisotropy (one of \code{linear}, \code{range}, \code{vgm}, or \code{metric})}
     \item{type_joint}{The type of theoretical model of the joint spatiotemporal variogram. Only applied when \code{joint} type of spatiotemporal variogram is chosen.}
     \item{prodsum_k}{k value for \code{stModel} in \link[gstat]{vgmST} is \code{productSum}. See \link[gstat]{vgmST} for more.}
@@ -91,7 +91,7 @@ and \code{sserr} respectively.
 # The first part of the example is from the example of krigeST
 library(spacetime)
 library(sp)
-data(air)\
+data(air)
 stations = spTransform(stations, CRS('+init=epsg:3857'))
 rural = STFDF(stations, dates, data.frame(PM10 = as.vector(air)))
 

@@ -27,6 +27,10 @@
 #' @param cores integer. The number of threads that will be used to compute the sample spatiotemporal variogram.
 #' @return The cross-validated spatiotemporal Kriging results.
 #' @examples
+#' library(sp)
+#' library(gstat)
+#' library(spacetime)
+#' 
 #' data(air)
 #' deair = STFDF(stations, dates, data.frame(PM10 = as.vector(air)))
 #' deair_sf = st_as_stars(deair) %>%
