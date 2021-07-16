@@ -4,10 +4,12 @@
 \alias{create_new_data.ST}
 \title{Generate a new spatiotemporal points for the spatiotemporal prediction and interpolation}
 \usage{
-create_new_data.ST(obj, gen_mode = "chull", npoints = 10000, forward = 6)
+create_new_data.ST(obj, form, gen_mode = "chull", npoints = 10000, forward = 6)
 }
 \arguments{
 \item{obj}{a ST*DF object.}
+
+\item{form}{formula.}
 
 \item{gen_mode}{character. One of 'rect' (rectangular) and 'chull' (convex hull).}
 

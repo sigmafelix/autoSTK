@@ -83,6 +83,10 @@ The cross-validated spatiotemporal Kriging results.
 Cross-validation of spatiotemporal Kriging
 }
 \examples{
+library(sp)
+library(gstat)
+library(spacetime)
+
 data(air)
 deair = STFDF(stations, dates, data.frame(PM10 = as.vector(air)))
 deair_sf = st_as_stars(deair) \%>\%

@@ -49,12 +49,13 @@ detect_temporal_unit <- function(temporal){
 #' Generate a new spatiotemporal points for the spatiotemporal prediction and interpolation
 #'
 #' @param obj a ST*DF object.
-#' @param  gen_mode character. One of 'rect' (rectangular) and 'chull' (convex hull).
+#' @param form formula.
+#' @param gen_mode character. One of 'rect' (rectangular) and 'chull' (convex hull).
 #' @param npoints integer. the number of points that will be generated
 #' @param forward integer. the time length of the data will generate ahead of the last time point of the input data. If NULL is passed, the spatiotemporal interpolation mode in obj will be conducted.
 #' @return A STFDF object.
 #' @export
-create_new_data.ST <- function(obj, gen_mode = 'chull', npoints = 1e4, forward=6){
+create_new_data.ST <- function(obj, form, gen_mode = 'chull', npoints = 1e4, forward=6){
 	sp.base <- obj@sp
 	tunit <- detect_temporal_unit(obj@time)
 	if (tunit == 'days'){

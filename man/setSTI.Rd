@@ -30,13 +30,17 @@ setSTI(
 
 \item{width}{integer (1). spatial lag (inherits the same parameter in variogramST)}
 
+\item{assumeRegular}{Boolean. Assuming regular grid?}
+
+\item{pseudo}{Boolean. See ?gstat::variogramST}
+
 \item{logarithm}{Boolean. log-transformation}
+
+\item{na.omit}{Boolean. Omit NA values.}
 
 \item{wireframe}{Boolean. Whether you plot a StVariogram in wireframe or not. If not, the return will be in class of data.frame, not a list}
 
 \item{plot3d}{Boolean. Wheter you make a three-dimensional graph with rgl package}
-
-\item{obj}{A Spatial*DataFrame.}
 }
 \value{
 Depends on the arguments wireframe (if TRUE, list of length 2) and plot3d (if TRUE, list of length 3), a StVariogram object otherwise.

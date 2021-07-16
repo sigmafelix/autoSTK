@@ -25,6 +25,7 @@
           		   prodsum_k = 0.25,
           		   start_vals = c(NA, NA, NA),
                    miscFitOptions = list(),
+                   measurement_error = c(0,0,0),
                    cores = 1,
                    verbose = TRUE)
                     }
@@ -69,9 +70,9 @@
     #             Setting the value to NA means that the value will be automatically chosen.}
     \item{miscFitOptions}{Additional options to set the behavior of \link{autofitVariogram}. For details see the
                  documentation of \link{autofitVariogram}.}
+    \item{measurement_error}{integer vector (3). Adds measurement error components for spatial, temporal, and joint spatiotemporal variogram models, respectively. IT IS HIGHLY EXPERIMENTAL. MAY RESULT IN ERRORS.}
     \item{cores}{The number of cores to be used for estimating \link[gstat]{variogramST}. See \link[gstat]{variogramST} for more detail.}
   	\item{verbose}{logical, if TRUE autoKrige will give extra information on the fitting process. Default is TRUE.}
-	\item{...}{arguments that are passed on to the gstat function \code{\link[gstat]{krigeST}}.}
 }
 \details{
 \code{autoKrigeST} calls the function \code{autofitVariogramST} that fits a spatiotemporal variogram model to the

@@ -61,8 +61,6 @@ autoKrigeST = function(formula,
     }
 
   	if(as.character(formula)[3] != 1 & missing(new_data)) stop("If you want to use Universal Kriging, new_data needs to be specified \n  because the predictors are also required on the prediction spatio-temporal data elements.")
-  	if("newdata" %in% names(list(...))) stop("The argument name for the prediction object is not 'newdata', but 'new_data'.")
-
     # TODO: remove duplicate objects in ST*DF (spatially)
     # Check if there are points or gridcells on the exact same coordinate and provide a more informative error message.
     # Points on the same spot causes the interpolation to crash.
@@ -132,8 +130,7 @@ autoKrigeST = function(formula,
                           nmax = nmax,
                           computeVar = TRUE,
                           bufferNmax = 2,
-                          modelList = variogram_object$jointSTV,
-                ...)
+                          modelList = variogram_object$jointSTV)
         setTxtProgressBar(pb, i)
 
       }
@@ -150,8 +147,7 @@ autoKrigeST = function(formula,
                       nmax = nmax,
                       computeVar = TRUE,
                       bufferNmax = 2,
-                      modelList = variogram_object$jointSTV,
-					  ...)
+                      modelList = variogram_object$jointSTV)
     }
     # Aggregate the results into an autoKrige object
     result = list(krige_output = krige_result,

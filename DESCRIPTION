@@ -17,7 +17,9 @@ Imports:
     automap,
     gstat,
     spacetime,
-    sp
+    sp,
+    sf,
+    lattice,
+    rgl
 Suggests:
-    sf
 RoxygenNote: 7.1.1

@@ -17,6 +17,8 @@ plot.autofitVariogram(
 \item{plotit}{boolean. Print graph or not.}
 
 \item{title}{character. the title of the plot.}
+
+\item{`...`}{passed to xyplot}
 }
 \value{
 A lattice::xyplot object.

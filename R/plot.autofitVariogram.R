@@ -10,6 +10,7 @@
 #' @param x A result object of autofitVariogram.
 #' @param plotit boolean. Print graph or not.
 #' @param title character. the title of the plot.
+#' @param `...` passed to xyplot
 #' @return A lattice::xyplot object.
 #' @export
 
