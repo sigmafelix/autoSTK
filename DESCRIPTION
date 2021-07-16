@@ -8,12 +8,16 @@ Description: Automatic spatio-temporal Kriging
     This package offers several functions to fit spatio-temporal variograms in terms of minimal SSE by expanding base functions in automap package (Hiemstra et al. 2010). Some candidate models are applied in default, and users can choose what theoretical models will be applied. Four cross-validation strategies for spatiotemporal data are implemented.
 License: MIT
 Encoding: UTF-8
+BugReports: https://github.com/sigmafelix/autoSTK/issues
+URL: https://github.com/sigmafelix/autoSTK
 Imports:
     dplyr,
     automap,
     gstat,
-    spacetime
+    spacetime,
+    sp
 Suggests:
-    npsp
+    npsp,
+    sf
 LazyData: true
 RoxygenNote: 7.1.1
