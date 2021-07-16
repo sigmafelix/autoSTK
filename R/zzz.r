@@ -1,4 +1,4 @@
-## Misc for npsp integration
+## Misc for npsp integration: subject to retire
 
 svariso <- function(input, vars, maxlag = 30000, nlags = 10, estimator = 'modulus'){
     if (sum(grepl('Spatial.*', class(input))) != 0){

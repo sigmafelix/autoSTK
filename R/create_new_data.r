@@ -1,3 +1,10 @@
+#' Create new spatial data for interpolation
+#'
+#' @param obj A Spatial*DataFrame.
+#' @param gen_mode character. One of 'rect' (rectangular) and 'chull' (convex hull).
+#' @param npoints integer. the number of points that will be generated
+#' @return A SpatialPointsDataFrame.
+#' @export
 create_new_data = function(obj, gen_mode = 'chull', npoints = 1e4) {
 # Function that creates a new_data object if one is missing
 
@@ -16,7 +23,11 @@ create_new_data = function(obj, gen_mode = 'chull', npoints = 1e4) {
 	return(new_data)
 }
 
-
+#' Autodetect the temporal unit in a xts object
+#'
+#' @param temporal a xts object.
+#' @return A character that indicates the temporal unit of the input xts object.
+#' @export
 detect_temporal_unit <- function(temporal){
   if (sum(class(temporal) %in% c('zoo', 'xts')) < 1) stop('Please check the class of the input data')
 
@@ -35,7 +46,15 @@ detect_temporal_unit <- function(temporal){
 }
 
 
-create_new_data.ST <- function(obj, form = NULL, gen_mode = 'chull', npoints = 1e4, forward=6){
+#' Generate a new spatiotemporal points for the spatiotemporal prediction and interpolation
+#'
+#' @param obj a ST*DF object.
+#' @param  gen_mode character. One of 'rect' (rectangular) and 'chull' (convex hull).
+#' @param npoints integer. the number of points that will be generated
+#' @param forward integer. the time length of the data will generate ahead of the last time point of the input data. If NULL is passed, the spatiotemporal interpolation mode in obj will be conducted.
+#' @return A STFDF object.
+#' @export
+create_new_data.ST <- function(obj, gen_mode = 'chull', npoints = 1e4, forward=6){
 	sp.base <- obj@sp
 	tunit <- detect_temporal_unit(obj@time)
 	if (tunit == 'days'){
@@ -46,7 +65,7 @@ create_new_data.ST <- function(obj, form = NULL, gen_mode = 'chull', npoints = 1
 	  ts.base <- ts.base[length(ts.base)]
 	}
 	sp.base <- create_new_data(sp.base, gen_mode = gen_mode, npoints = npoints)
-	sp.base <- spTransform(sp.base, proj4string(obj@sp))
+	sp.base <- sp::spTransform(sp.base, proj4string(obj@sp))
 	if (!is.null(forward)) {
 	  # TODO: temporal unit-dependent setting
 	  if (tunit == 'hours') {

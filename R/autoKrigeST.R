@@ -43,8 +43,7 @@ autoKrigeST = function(formula,
                       miscFitOptions = list(),
                       measurement_error = c(0,0,0),
                       cores = 1, 
-                      verbose = TRUE,
-                      ...)
+                      verbose = TRUE)
 # This function performs an automatic Kriging on the data in input_data
 {
   	if(inherits(formula, "STIDF") | inherits(formula, "STFDF") | inherits(formula, "STSDF"))

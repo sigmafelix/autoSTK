@@ -26,8 +26,7 @@
           		   start_vals = c(NA, NA, NA),
                    miscFitOptions = list(),
                    cores = 1,
-                   verbose = TRUE,
-                   ...)
+                   verbose = TRUE)
                     }
 \arguments{
 	\item{formula}{formula that defines the dependent variable as a linear model
@@ -91,8 +90,8 @@ and \code{sserr} respectively.
 \examples{
 # The first part of the example is from the example of krigeST
 library(spacetime)
-library(sf)
-data(air)
+library(sp)
+data(air)\
 stations = spTransform(stations, CRS('+init=epsg:3857'))
 rural = STFDF(stations, dates, data.frame(PM10 = as.vector(air)))
 

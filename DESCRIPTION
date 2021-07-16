@@ -10,6 +10,8 @@ License: MIT
 Encoding: UTF-8
 BugReports: https://github.com/sigmafelix/autoSTK/issues
 URL: https://github.com/sigmafelix/autoSTK
+Depends:
+    roxygen2
 Imports:
     dplyr,
     automap,
@@ -17,7 +19,5 @@ Imports:
     spacetime,
     sp
 Suggests:
-    npsp,
     sf
-LazyData: true
 RoxygenNote: 7.1.1

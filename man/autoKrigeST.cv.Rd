@@ -34,9 +34,47 @@ autoKrigeST.cv(
 
 \item{fold_dim}{character. the dimension at which you want to cross-validate (spatial, temporal, and random)}
 
-\item{nfold}{integer. the number of folds. 10 as the default.}
+\item{nfold}{integer. the number of folds. 10 as the default}
 
-\item{...}{inherits arguments of `autoKrigeST`}
+\item{formula}{formula. e.g., y~1}
+
+\item{type_stv}{character. One of 'sumMetric', 'metric', 'productSum', and 'separable'}
+
+\item{block}{numeric. passed to conduct block spatiotemporal Kriging.}
+
+\item{model}{character vector. Default is c("Sph", "Exp", "Gau", "Ste"), but users can specify the list of theoretical variograms by referring gstat::vgm.}
+
+\item{kappa}{numeric vector. Kappa values tested for Matern-family variogram models.}
+
+\item{fix.values}{numeric vector. Initial values in order of nugget, range, and sill, respectively.}
+
+\item{tlags}{integer vector (increasing, preferably to be consecutive). temporal lags.}
+
+\item{cutoff}{numeric. The maximum distance at which the sample variogram will be computed.}
+
+\item{width}{numeric. The interval at which the variogram cloud will be summarized.}
+
+\item{nmax}{integer or positive infinite. The maximum number of spatiotemporal neighbors to conduct the local spatiotemporal Kriging.}
+
+\item{aniso_method}{character. One of 'vgm', 'linear', 'range', and 'metric'. Please refer to ?gstat::estiStAni.}
+
+\item{type_joint}{character. The model form of joint spatiotemporal variogram.}
+
+\item{prodsum_k}{numeric. The parameter for the case when 'productSum' is chosen for type_stv.}
+
+\item{start_vals}{numeric vector (3). The initial values to optimize the spatiotemporal variogram model.}
+
+\item{miscFitOptions}{list. See ?automap::autofitVariogram.}
+
+\item{cores}{integer. The number of threads that will be used to compute the sample spatiotemporal variogram.}
+
+\item{newdata_mode}{character. One of 'rect' (rectangular grid) and 'chull' (convex hull)}
+
+\item{newdata_npoints}{integer. The number of points that will be generated in the range of geometry the user specified (one of rectangle or convex hull)}
+
+\item{GLS.model}{a variogram model. The default value is NA. If a variogram model is passed, a Generalized Lease Squares sample variogram will be calculated.}
+
+\item{predict_chunk}{integer. The number of data points per chunk in the new data for the large data. It should be meticulously chosen according to the user's machine specification.}
 }
 \value{
 The cross-validated spatiotemporal Kriging results.
@@ -54,7 +92,7 @@ deair_r = as(deair_sf, 'STFDF')
 deair_r@sp@proj4string = CRS('+init=epsg:3857')
 deair_rs = deair_r[,3751:3800]
 ## autoKrigeST.cv test
-akst_cv_t = autoKrigeST.cv(formula  PM10~1, data = deair_rs,  nfold = 3, fold_dim = 'temporal', 
+akst_cv_t = autoKrigeST.cv(formula = PM10~1, data = deair_rs,  nfold = 3, fold_dim = 'temporal', 
                          cutoff = 300000, width = 30000, tlags = 0:7, cores = 8)
 akst_cv_s = autoKrigeST.cv(formula = PM10~1, data = deair_rs,  nfold = 3, fold_dim = 'spatial', 
                          cutoff = 300000, width = 30000, tlags = 0:7, cores = 8)

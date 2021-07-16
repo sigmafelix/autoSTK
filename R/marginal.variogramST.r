@@ -1,3 +1,11 @@
+#' Compute the marginal spatial or temporal sample variogram
+#'
+#' @param stv A STFDF.
+#' @param bound numeric. The maximum distance that will be used to compute a spatial variogram.
+#' @param spatial boolean. if TRUE, the spatial marginal variogram will be obtained, temporal otherwise.
+#' @return A gstatVariogram object.
+#' @export
+
 ### marginal.variogramST.R
 ## input: stv. StVariogram and data.frame.
 ## bound: numeric. maximum distance to function fit
