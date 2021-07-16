@@ -92,19 +92,20 @@ and \code{sserr} respectively.
 # The first part of the example is from the example of krigeST
 library(spacetime)
 library(sp)
+library(stars)
 data(air)
 stations = spTransform(stations, CRS('+init=epsg:3857'))
 rural = STFDF(stations, dates, data.frame(PM10 = as.vector(air)))
 
-rr <- rural[,2701:2731]
-rr <- as(rr,"STIDF")
+rr <- rural[,3001:3060]
+rr <- as(rr,"STSDF")
 air.stk <- autoKrigeST(formula = PM10~1,
                        input_data = rr,
                        type_stv = 'sumMetric',
                        tlags = 0:7,
-                       cutoff = 1e5,
-                       width = 5e3,
+                       model = c('Mat', 'Ste', 'Wav', 'Exp', 'Exc'),
+                       cutoff = 3e5,
+                       width = 3e4,
                        cores = 4)
-
-
+plot(st_as_stars(air.stk[[1]])[1,], pch = 19, cex = 0.5)
     }

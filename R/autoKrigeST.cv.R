@@ -2,7 +2,7 @@
 
 #' Cross-validation of spatiotemporal Kriging
 #'
-#' @param data a `ST*DF`-class object 
+#' @param data a `STFDF`-class object 
 #' @param fold_dim character. the dimension at which you want to cross-validate (spatial, temporal, and random)
 #' @param nfold integer. the number of folds. 10 as the default
 #' @param formula formula. e.g., y~1
@@ -30,23 +30,22 @@
 #' library(sp)
 #' library(gstat)
 #' library(spacetime)
-#' 
+#' library(stars)
+#' library(dplyr)
 #' data(air)
 #' deair = STFDF(stations, dates, data.frame(PM10 = as.vector(air)))
-#' deair_sf = st_as_stars(deair) %>%
-#'     st_transform('+proj=longlat +ellps=sphere')
+#' deair_sf = st_as_stars(deair, crs = '+proj=longlat +ellps=sphere')
 #' deair_sf = st_transform(deair_sf, 3857)
 #' deair_r = as(deair_sf, 'STFDF')
 #' deair_r@sp@proj4string = CRS('+init=epsg:3857')
 #' deair_rs = deair_r[,3751:3800]
-
 #' ## autoKrigeST.cv test
 #' akst_cv_t = autoKrigeST.cv(formula = PM10~1, data = deair_rs,  nfold = 3, fold_dim = 'temporal', 
 #'                          cutoff = 300000, width = 30000, tlags = 0:7, cores = 8)
 #' akst_cv_s = autoKrigeST.cv(formula = PM10~1, data = deair_rs,  nfold = 3, fold_dim = 'spatial', 
 #'                          cutoff = 300000, width = 30000, tlags = 0:7, cores = 8)
-#' akst_cv_r = autoKrigeST.cv(formula = PM10~1, data = deair_rs,  nfold = 3, fold_dim = 'random', 
-#'                           cutoff = 300000, width = 30000, tlags = 0:7, cores = 8)
+#' #akst_cv_r = autoKrigeST.cv(formula = PM10~1, data = deair_rs,  nfold = 3, fold_dim = 'random', 
+#' #                          cutoff = 300000, width = 30000, tlags = 0:7, cores = 8)
 #' akst_cv_spt = autoKrigeST.cv(formula = PM10~1, data = deair_rs,  nfold = 4, fold_dim = 'spacetime', 
 #'                          cutoff = 300000, width = 30000, tlags = 0:7, cores = 8)
 #' @export
@@ -89,8 +88,8 @@ autoKrigeST.cv = function(data, fold_dim,
 
             vv = split(1:len_space, indices)
             for (i in seq_len(length(vv))) {
-                idata = data[-vv[[i]]]
-                vdata = data[vv[[i]]]
+                idata = data[-vv[[i]],]
+                vdata = data[vv[[i]],]
                 data_fold[[i]] = as(idata, 'STSDF')
                 data_validation[[i]] = as(vdata, 'STSDF')
             }
@@ -99,7 +98,7 @@ autoKrigeST.cv = function(data, fold_dim,
         if (grepl('^(temp|tim)', dimension)) {
             q = len_time %% nfold
             if (q != 0) {
-                targ = ceiling(len_time/nfold)
+                targ = floor(len_time/nfold)
                 v = rep(targ, nfold)
                 vindex = sample(nfold, q, replace = FALSE)
                 v[vindex] = v[vindex] + 1
@@ -110,8 +109,8 @@ autoKrigeST.cv = function(data, fold_dim,
             vv = split(c(1:len_time), rep(1:nfold, v))
             
             for (i in seq_len(length(vv))) {
-                idata = data[-vv[[i]]]
-                vdata = data[vv[[i]]]
+                idata = data[,-vv[[i]]]
+                vdata = data[,vv[[i]]]
                 data_fold[[i]] = as(idata, 'STSDF')
                 data_validation[[i]] = as(vdata, 'STSDF')
 
