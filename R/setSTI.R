@@ -32,21 +32,21 @@ setSTI <-
            width = 1000,
            assumeRegular = TRUE, 
            pseudo = TRUE, 
-           logarithm = FALSE, 
+           #logarithm = FALSE, 
            na.omit = TRUE,
-           wireframe = TRUE, 
+           wireframe = FALSE, 
            plot3d = FALSE, 
            cores = 1) {
     formula <- as.formula(formula)
     ncol.stf <- (cutoff / width) + 1
     nrow.stf <- max(tlags)
 
-    if (logarithm){
-      stf@data <- log(stf@data)
-    }
-    else {
-      stf <- stf
-    }
+    # if (logarithm){
+    #   stf@data <- log(stf@data)
+    # }
+    # else {
+    #   stf <- stf
+    # }
 
     apo.pmsub.stf <- variogramST(formula = formula,
                                  data = stf,
@@ -62,9 +62,12 @@ setSTI <-
     }
 
     if (wireframe) {
+      label.tlag = units(apo.pmsub.stf$timelag)
+      apo.pmsub.stf$timelag = as.numeric(apo.pmsub.stf$timelag)
       wireframe.stf <- lattice::wireframe(gamma ~ spacelag * timelag,
                                           apo.pmsub.stf,
                                           drape=TRUE,
+                                          ylab = paste("Time lag (", label.tlag, ")", sep = ""),
                                           col.regions = colorRampPalette(colors = c('white', 'red'))(100),
                                           zlim=c(0, max(apo.pmsub.stf$gamma)*1.02))
       dev.new()

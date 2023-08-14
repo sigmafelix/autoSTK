@@ -1,7 +1,7 @@
 Package: autoSTK
 Type: Package
 Title: Automatic spatio-temporal kriging
-Version: 1.1.0
+Version: 1.2.0
 Author: Insang Song
 Maintainer: Insang Song <sigmafelix@hotmail.com>
 Description: Automatic spatio-temporal Kriging 
@@ -19,6 +19,7 @@ Imports:
     spacetime,
     sp,
     sf,
+    sftime,
     lattice,
     rgl
 Suggests:

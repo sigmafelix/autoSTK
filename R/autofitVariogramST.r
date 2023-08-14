@@ -95,16 +95,16 @@ autofitVariogramST <- function(
   }
   if (is.null(guess_psill)){
     guess_psill_c1 <- ifelse(0.5 *(max(stva$gamma) - max(stva.sp$gamma, stva.ts$gamma) ) < 0, 
-                            min(stva$gamma) * 2, 0.5 * max(stva$gamma) - max(stva.sp$gamma, stva.ts$gamma))
+                            min(stva$gamma) * 2, 0.5 * (max(stva$gamma) - max(stva.sp$gamma, stva.ts$gamma)))
     guess_psill_c2 <- ifelse(0.5* (stva$gamma[length(stva$gamma)] - max(stva.sp$gamma, stva.ts$gamma)) < 0,
                             min(stva$gamma) * 2, 0.5* (stva$gamma[length(stva$gamma)] - max(stva.sp$gamma, stva.ts$gamma)))
     if (typestv == 'metric'){
 		guess_psill <- 0.5 * max(stva.sp$gamma)
 	} else {
-		guess_psill <- max(0.05*max(stva.sp$gamma), min(guess_psill_c1, guess_psill_c2))
+		guess_psill <- max(0.1*max(stva.sp$gamma), min(guess_psill_c1, guess_psill_c2))
 	}
   }
-  sill <- max(stva$gamma)*0.5
+  sill <- max(stva$gamma)*0.6
   stv.jo <- vgm(model = type_joint,
                 psill = guess_psill, nugget = guess_nugget,
                 Err = measurement_error[3],

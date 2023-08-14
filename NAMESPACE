@@ -5,6 +5,7 @@ import(automap)
 import(roxygen2)
 import(sp)
 import(sf)
+import(sftime)
 
 importFrom('dplyr', '%>%')
 importFrom('grDevices', 'chull', 'colorRampPalette', 'dev.new')

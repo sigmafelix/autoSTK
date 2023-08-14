@@ -1,7 +1,7 @@
 \name{autofitVariogramST}
 \alias{autofitVariogramST}
 \title{
-Automatically fit a spatiotemporal variogram from ST*DF}
+Automatically fit a spatiotemporal variogram from sftime or ST*DF}
 \description{
 
 }
@@ -25,7 +25,7 @@ autofitVariogramST(
 
 \arguments{
     \item{stf}{An object of the
-	            \link[spacetime]{STI-class} or \link[spacetime]{STF-class} containing the data from which the spatiotemporal variogram to be estimated.}
+	            \link[sftime]{sftime}, \link[spacetime]{STI} or \link[spacetime]{STF} containing the data from which the spatiotemporal variogram to be estimated.}
 	\item{formula}{formula that defines the dependent variable as a linear model
 				of independent variables; suppose the dependent variable has
 				name 'z', for ordinary and simple kriging use the formula

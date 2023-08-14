@@ -15,6 +15,7 @@
 
 # Update plan
 - Add support for `STIDF` class and universal spatiotemporal Kriging: necessitates the `gstat` function fix for `variogramST.STIDF`
+- Transition to `sf` and `sftime` in preparation of the retirement of `sp` in October 2023
 - Add support for the spatiotemporal separability test (referring to [`covatest`](https://cran.r-project.org/web/packages/covatest/index.html) (De Iaco, 2020))
 
 # __Main features__
@@ -22,7 +23,8 @@
 + Find the optimal theoretical variograms with BFHS algorithm following the `autofitVariogram` function of `automap` package; but several changes were applied
 
 # Please note
-- Some functions related to `npsp` package will retire as the `npsp` package is no longer available on CRAN.
+- I strongly recommend users to convert `STIDF` to `STSDF` before running functions
+    - When the input is `sftime`, convert the input into `STIDF` then into `STSDF`
 
 # Working example
 - Please consult the help page of the main functions `autoKrigeST` and `autoKrigeST.cv`.
@@ -30,17 +32,9 @@
 ``` r
 library(autoSTK)
 library(gstat)
-#> Warning: package 'gstat' was built under R version 4.0.5
 library(spacetime)
-#> Warning: package 'spacetime' was built under R version 4.0.5
 library(stars)
-#> Warning: package 'stars' was built under R version 4.0.5
-#> Loading required package: abind
-#> Loading required package: sf
-#> Warning: package 'sf' was built under R version 4.0.5
-#> Linking to GEOS 3.9.0, GDAL 3.2.1, PROJ 7.2.1
 library(sp)
-#> Warning: package 'sp' was built under R version 4.0.3
 
 data(air)
 deair = STFDF(stations, dates, data.frame(PM10 = as.vector(air)))
@@ -48,25 +42,8 @@ deair_sf = st_as_stars(deair) %>%
     st_transform('+proj=longlat +ellps=sphere')
 deair_sf = st_transform(deair_sf, 3857)
 deair_r = as(deair_sf, 'STFDF')
-#> Warning in showSRID(uprojargs, format = "PROJ", multiline = "NO", prefer_proj =
-#> prefer_proj): Discarded ellps WGS 84 in Proj4 definition: +proj=merc +a=6378137
-#> +b=6378137 +lat_ts=0 +lon_0=0 +x_0=0 +y_0=0 +k=1 +units=m +nadgrids=@null
-#> +wktext +no_defs +type=crs
-#> Warning in showSRID(uprojargs, format = "PROJ", multiline = "NO", prefer_proj =
-#> prefer_proj): Discarded datum World Geodetic System 1984 in Proj4 definition
-#> Warning in showSRID(SRS_string, format = "PROJ", multiline = "NO", prefer_proj =
-#> prefer_proj): Discarded ellps WGS 84 in Proj4 definition: +proj=merc +a=6378137
-#> +b=6378137 +lat_ts=0 +lon_0=0 +x_0=0 +y_0=0 +k=1 +units=m +nadgrids=@null
-#> +wktext +no_defs +type=crs
-#> Warning in showSRID(SRS_string, format = "PROJ", multiline = "NO", prefer_proj =
-#> prefer_proj): Discarded datum World Geodetic System 1984 in Proj4 definition
 deair_r@sp@proj4string = CRS('+init=epsg:3857')
-#> Warning in showSRID(uprojargs, format = "PROJ", multiline = "NO", prefer_proj =
-#> prefer_proj): Discarded ellps WGS 84 in Proj4 definition: +proj=merc +a=6378137
-#> +b=6378137 +lat_ts=0 +lon_0=0 +x_0=0 +y_0=0 +k=1 +units=m +nadgrids=@null
-#> +wktext +no_defs
-#> Warning in showSRID(uprojargs, format = "PROJ", multiline = "NO", prefer_proj =
-#> prefer_proj): Discarded datum WGS_1984 in Proj4 definition
+
 deair_rs = deair_r[,3701:3800]
 deair_rss = as(deair_rs, 'STSDF')
 
@@ -74,16 +51,7 @@ deair_rss = as(deair_rs, 'STSDF')
 akst_stk = autoKrigeST(formula = PM10~1, 
                        input_data = deair_rss, 
                        cutoff = 300000, width = 30000, tlags = 0:7, cores = 8)
-#> Warning in showSRID(uprojargs, format = "PROJ", multiline = "NO", prefer_proj =
-#> prefer_proj): Discarded ellps WGS 84 in Proj4 definition: +proj=merc +a=6378137
-#> +b=6378137 +lat_ts=0 +lon_0=0 +x_0=0 +y_0=0 +k=1 +units=m +nadgrids=@null
-#> +wktext +no_defs +type=crs
-#> Warning in showSRID(uprojargs, format = "PROJ", multiline = "NO", prefer_proj =
-#> prefer_proj): Discarded datum World Geodetic System 1984 in Proj4 definition
-#> Warning in showSRID(SRS_string, format = "PROJ", multiline = "NO", prefer_proj =
-#> prefer_proj): Discarded ellps WGS 84 in Proj4 definition: +proj=merc +a=6378137
-#> +b=6378137 +lat_ts=0 +lon_0=0 +x_0=0 +y_0=0 +k=1 +units=m +nadgrids=@null
-#> +wktext +no_defs +type=crs
+
 akst_stk_stars = st_as_stars(akst_stk[[1]])
 plot(akst_stk_stars[1,])
 ```

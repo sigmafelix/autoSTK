@@ -36,9 +36,9 @@
 				'z~1'; for simple kriging also define 'beta' (see below); for
 				universal kriging, suppose 'z' is linearly dependent on 'x'
 				and 'y', use the formula 'z~x+y'.}
-    \item{input_data}{An object of the
-	            \link[spacetime]{STI}, \link[spacetime]{STS} or \link[spacetime]{STF} containing the data to be interpolated.}
-    \item{new_data}{A \link[spacetime]{STI} or \link[spacetime]{STF} object containing the prediction locations.
+    \item{input_data}{A 
+	            \link[sftime]{sftime}, \link[spacetime]{STI}, \link[spacetime]{STS} or \link[spacetime]{STF} object containing the data to be interpolated.}
+    \item{new_data}{A \link[sftime]{sftime}, \link[spacetime]{STI} or \link[spacetime]{STF} object containing the prediction locations.
                 Must not contain NA's. If this object is not provided
 				a default is calculated. This is done by taking the convex hull of \code{input_data} and
 				placing around 3000 gridcells in that convex hull.}
@@ -65,9 +65,9 @@
     \item{aniso_method}{The method to estimate the spatiotemporal anisotropy (one of \code{linear}, \code{range}, \code{vgm}, or \code{metric})}
     \item{type_joint}{The type of theoretical model of the joint spatiotemporal variogram. Only applied when \code{joint} type of spatiotemporal variogram is chosen.}
     \item{prodsum_k}{k value for \code{stModel} in \link[gstat]{vgmST} is \code{productSum}. See \link[gstat]{vgmST} for more.}
-    #\item{start_vals}{Can be used to give the starting values for the variogram fitting. The items describe the
-    #             fixed value for the nugget, range and sill respectively. They need to be given in that order.
-    #             Setting the value to NA means that the value will be automatically chosen.}
+    \item{start_vals}{Can be used to give the starting values for the variogram fitting. The items describe the
+                 fixed value for the nugget, range and sill respectively. They need to be given in that order.
+                 Setting the value to NA means that the value will be automatically chosen.}
     \item{miscFitOptions}{Additional options to set the behavior of \link{autofitVariogram}. For details see the
                  documentation of \link{autofitVariogram}.}
     \item{measurement_error}{integer vector (3). Adds measurement error components for spatial, temporal, and joint spatiotemporal variogram models, respectively. IT IS HIGHLY EXPERIMENTAL. MAY RESULT IN ERRORS.}
@@ -93,12 +93,21 @@ and \code{sserr} respectively.
 library(spacetime)
 library(sp)
 library(stars)
+library(sftime)
 data(air)
-stations = spTransform(stations, CRS('+init=epsg:3857'))
-rural = STFDF(stations, dates, data.frame(PM10 = as.vector(air)))
+stations = st_as_sf(stations)
+stations = st_transform(stations, 'EPSG:3857')
 
-rr <- rural[,3001:3060]
-rr <- as(rr,"STSDF")
+airdf = data.frame(PM10 = as.vector(air))
+stations_full = do.call(c, rep(stations, length(dates)))
+dates_full = rep(dates, each = nrow(stations))
+
+rural = cbind(airdf, time = dates_full, stations_full)
+
+#ruralsft = st_as_stars(airdf, time = dates)
+rural = st_as_sftime(rural, sf_column_name = 'geometry')
+
+rr <- rural[which(rural$time %in% dates[3001:3060]),]
 air.stk <- autoKrigeST(formula = PM10~1,
                        input_data = rr,
                        type_stv = 'sumMetric',
