@@ -4,7 +4,7 @@
 \alias{create_new_data}
 \title{Create new spatial data for interpolation}
 \usage{
-create_new_data(obj, gen_mode = "chull", npoints = 10000)
+create_new_data(obj, gen_mode = "chull", npoints = 10000, return_class = "sf")
 }
 \arguments{
 \item{obj}{A Spatial*DataFrame.}
@@ -12,9 +12,11 @@ create_new_data(obj, gen_mode = "chull", npoints = 10000)
 \item{gen_mode}{character. One of 'rect' (rectangular) and 'chull' (convex hull).}
 
 \item{npoints}{integer. the number of points that will be generated}
+
+\item{return_class}{character(1). One of 'sf' and 'sp'}
 }
 \value{
-A SpatialPointsDataFrame.
+A sf (return_class == 'sf') or SpatialPointsDataFrame (return_class == 'sp').
 }
 \description{
 Create new spatial data for interpolation

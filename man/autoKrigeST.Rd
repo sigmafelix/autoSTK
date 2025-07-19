@@ -86,6 +86,9 @@ was fitted by \code{autofitVariogram} and the sums of squares between the sample
 fitted variogram model. The attribute names are \code{krige_output}, \code{exp_var}, \code{var_model}
 and \code{sserr} respectively.
 }
+\note{\code{cutoff} and \code{width} should be respectfully chosen to the scale of the data.
+      The \code{width} should be larger than the minimum distance between the points in the dataset.
+      The \code{cutoff} should be larger than the \code{width}}
 \author{Insang Song, \email{sigmafelix@hotmail.com}}
 \seealso{\code{\link{autofitVariogramST}}, \code{\link[gstat]{krigeST}}}
 \examples{
@@ -95,26 +98,29 @@ library(sp)
 library(stars)
 library(sftime)
 data(air)
-stations = st_as_sf(stations)
-stations = st_transform(stations, 'EPSG:3857')
+stations <- st_as_sf(stations)
+stations <- st_transform(stations, 'EPSG:3857')
 
-airdf = data.frame(PM10 = as.vector(air))
-stations_full = do.call(c, rep(stations, length(dates)))
-dates_full = rep(dates, each = nrow(stations))
+airdf <- data.frame(PM10 = as.vector(air))
+stations_full <- do.call(c, rep(stations, length(dates)))
+dates_full <- rep(dates, each = nrow(stations))
 
-rural = cbind(airdf, time = dates_full, stations_full)
+rural <- cbind(airdf, time = dates_full, stations_full)
 
 #ruralsft = st_as_stars(airdf, time = dates)
-rural = st_as_sftime(rural, sf_column_name = 'geometry')
+rural <- st_as_sftime(rural, sf_column_name = 'geometry')
+rr <- rural[match(rural$time, dates[3001:3060], nomatch = FALSE, incomparables = FALSE) > 0, ]
+# rr[is.na(rr$PM10), 'PM10'] <- mean(rr$PM10, na.rm = TRUE)
 
-rr <- rural[which(rural$time %in% dates[3001:3060]),]
-air.stk <- autoKrigeST(formula = PM10~1,
+air_stk <- autoKrigeST(formula = PM10~1,
                        input_data = rr,
                        type_stv = 'sumMetric',
                        tlags = 0:7,
                        model = c('Mat', 'Ste', 'Wav', 'Exp', 'Exc'),
-                       cutoff = 3e5,
-                       width = 3e4,
+                       cutoff = 2e5,
+                       width = 2e4,
                        cores = 4)
-plot(st_as_stars(air.stk[[1]])[1,], pch = 19, cex = 0.5)
-    }
+
+plot(st_as_stars(air_stk[[1]])[1,], pch = 19, cex = 0.5)
+
+}

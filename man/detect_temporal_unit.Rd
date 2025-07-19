@@ -2,16 +2,16 @@
 % Please edit documentation in R/create_new_data.r
 \name{detect_temporal_unit}
 \alias{detect_temporal_unit}
-\title{Autodetect the temporal unit in a xts object}
+\title{Autodetect the temporal unit}
 \usage{
 detect_temporal_unit(temporal)
 }
 \arguments{
-\item{temporal}{a xts object.}
+\item{temporal}{xts object.}
 }
 \value{
 A character that indicates the temporal unit of the input xts object.
 }
 \description{
-Autodetect the temporal unit in a xts object
+Autodetect the temporal unit
 }

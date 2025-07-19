@@ -1,9 +1,11 @@
 Package: autoSTK
 Type: Package
 Title: Automatic spatio-temporal kriging
-Version: 1.2.0
-Author: Insang Song
-Maintainer: Insang Song <sigmafelix@hotmail.com>
+Version: 1.3.0
+Authors@R: c(
+    person("Insang", "Song", email = "geoissong@gmail.com", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0001-8732-3256"))
+    )
 Description: Automatic spatio-temporal Kriging 
     This package offers several functions to fit spatio-temporal variograms in terms of minimal SSE by expanding base functions in automap package (Hiemstra et al. 2010). Some candidate models are applied in default, and users can choose what theoretical models will be applied. Four cross-validation strategies for spatiotemporal data are implemented.
 License: MIT
@@ -23,4 +25,6 @@ Imports:
     lattice,
     rgl
 Suggests:
-RoxygenNote: 7.1.1
+    testthat (>= 3.0.0)
+RoxygenNote: 7.3.2
+Config/testthat/edition: 3

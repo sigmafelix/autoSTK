@@ -7,7 +7,7 @@
 marginal.variogramST(stv, bound, spatial = TRUE)
 }
 \arguments{
-\item{stv}{A STFDF.}
+\item{stv}{A StVariogram and data.frame object.}
 
 \item{bound}{numeric. The maximum distance that will be used to compute a spatial variogram.}
 

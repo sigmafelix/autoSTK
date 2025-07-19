@@ -7,18 +7,18 @@
 create_new_data.ST(obj, form, gen_mode = "chull", npoints = 10000, forward = 6)
 }
 \arguments{
-\item{obj}{a ST*DF object.}
+\item{obj}{a sftime object.}
 
 \item{form}{formula.}
 
-\item{gen_mode}{character. One of 'rect' (rectangular) and 'chull' (convex hull).}
+\item{gen_mode}{character. The type of shape by the surface is generated. One of 'rect' (rectangular) and 'chull' (convex hull).}
 
 \item{npoints}{integer. the number of points that will be generated}
 
 \item{forward}{integer. the time length of the data will generate ahead of the last time point of the input data. If NULL is passed, the spatiotemporal interpolation mode in obj will be conducted.}
 }
 \value{
-A STFDF object.
+A sftime object.
 }
 \description{
 Generate a new spatiotemporal points for the spatiotemporal prediction and interpolation

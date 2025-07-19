@@ -1,4 +1,4 @@
-autofitVariogram <- function(formula, input_data, input_vgm = NULL, model = c("Sph", "Exp", "Gau", "Ste"),
+autofitVariogram_ <- function(formula, input_data, input_vgm = NULL, model = c("Sph", "Exp", "Gau", "Ste"),
                              kappa = c(0.05, seq(0.1, 2, 0.1), 5, 10), fix.values = c(NA, NA, NA),
                              verbose = FALSE, GLS.model = NA, start_vals = c(NA, NA, NA), measurement_error = 0,
                              boundaries = c(2, 4, 6, 9, 12, 15, 25, 35, 50, 65, 80, 100) * 50000,

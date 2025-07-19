@@ -89,19 +89,25 @@ library(spacetime)
 library(stars)
 library(dplyr)
 data(air)
-deair = STFDF(stations, dates, data.frame(PM10 = as.vector(air)))
-deair_sf = st_as_stars(deair, crs = '+proj=longlat +ellps=sphere')
-deair_sf = st_transform(deair_sf, 3857)
-deair_r = as(deair_sf, 'STFDF')
-deair_r@sp@proj4string = CRS('+init=epsg:3857')
-deair_rs = deair_r[,3751:3800]
+deair <- STFDF(stations, dates, data.frame(PM10 = as.vector(air)))
+deair_sf <- st_as_stars(deair, crs = "+proj=longlat +ellps=sphere")
+deair_sf <- st_transform(deair_sf, 3857)
+deair_r <- as(deair_sf, "STFDF")
+deair_r@sp@proj4string <- CRS("+init=epsg:3857")
+deair_rs <- deair_r[, 3751:3800]
 ## autoKrigeST.cv test
-akst_cv_t = autoKrigeST.cv(formula = PM10~1, data = deair_rs,  nfold = 3, fold_dim = 'temporal', 
-                         cutoff = 300000, width = 30000, tlags = 0:7, cores = 8)
-akst_cv_s = autoKrigeST.cv(formula = PM10~1, data = deair_rs,  nfold = 3, fold_dim = 'spatial', 
-                         cutoff = 300000, width = 30000, tlags = 0:7, cores = 8)
-#akst_cv_r = autoKrigeST.cv(formula = PM10~1, data = deair_rs,  nfold = 3, fold_dim = 'random', 
+akst_cv_t <- autoKrigeST.cv(
+  formula = PM10 ~ 1, data = deair_rs, nfold = 3, fold_dim = "temporal",
+  cutoff = 300000, width = 30000, tlags = 0:7, cores = 8
+)
+akst_cv_s <- autoKrigeST.cv(
+  formula = PM10 ~ 1, data = deair_rs, nfold = 3, fold_dim = "spatial",
+  cutoff = 300000, width = 30000, tlags = 0:7, cores = 8
+)
+# akst_cv_r = autoKrigeST.cv(formula = PM10~1, data = deair_rs,  nfold = 3, fold_dim = 'random',
 #                          cutoff = 300000, width = 30000, tlags = 0:7, cores = 8)
-akst_cv_spt = autoKrigeST.cv(formula = PM10~1, data = deair_rs,  nfold = 4, fold_dim = 'spacetime', 
-                         cutoff = 300000, width = 30000, tlags = 0:7, cores = 8)
+akst_cv_spt <- autoKrigeST.cv(
+  formula = PM10 ~ 1, data = deair_rs, nfold = 4, fold_dim = "spacetime",
+  cutoff = 300000, width = 30000, tlags = 0:7, cores = 8
+)
 }
