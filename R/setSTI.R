@@ -30,7 +30,7 @@ setSTI <-
            tlags = 0:6,
            cutoff = 30000,
            width = 1000,
-           assumeRegular = TRUE,
+           assumeRegular = FALSE,
            pseudo = TRUE,
            # logarithm = FALSE,
            na.omit = TRUE,

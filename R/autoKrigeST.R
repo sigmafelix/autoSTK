@@ -116,10 +116,11 @@ autoKrigeST <- function(formula,
 
   # Fit the variogram model, first check which model is used
   # will be deprecated after v.2.0
-  input_data <- as(as(input_data, "STIDF"), "STSDF")
-  new_data <- as(as(new_data, "STIDF"), "STSDF")
+  input_data <- as(as(as(input_data, "STIDF"), "STFDF"), "STSDF")
+  new_data <- as(as(new_data, "STIDF"), "STFDF")
   data_variogram <- input_data
 
+  message("Fitting the optimal spatiotemporal variogram model...")
   variogram_object <- autofitVariogramST(
     formula = formula,
     stf = data_variogram,
@@ -137,6 +138,7 @@ autoKrigeST <- function(formula,
     verbose = verbose
   )
 
+  message("Predicting the output for ", forward, " time steps...")
   if (!is.null(predict_chunk)) {
     ## Perform the interpolation by chunk
     # new_data_sti = as(new_data, 'STIDF')

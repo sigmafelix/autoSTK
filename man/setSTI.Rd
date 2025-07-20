@@ -12,9 +12,8 @@ setSTI(
   width = 1000,
   assumeRegular = TRUE,
   pseudo = TRUE,
-  logarithm = FALSE,
   na.omit = TRUE,
-  wireframe = TRUE,
+  wireframe = FALSE,
   plot3d = FALSE,
   cores = 1
 )
@@ -34,13 +33,13 @@ setSTI(
 
 \item{pseudo}{Boolean. See ?gstat::variogramST}
 
-\item{logarithm}{Boolean. log-transformation}
-
 \item{na.omit}{Boolean. Omit NA values.}
 
 \item{wireframe}{Boolean. Whether you plot a StVariogram in wireframe or not. If not, the return will be in class of data.frame, not a list}
 
 \item{plot3d}{Boolean. Wheter you make a three-dimensional graph with rgl package}
+
+\item{logarithm}{Boolean. log-transformation}
 }
 \value{
 Depends on the arguments wireframe (if TRUE, list of length 2) and plot3d (if TRUE, list of length 3), a StVariogram object otherwise.

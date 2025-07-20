@@ -14,6 +14,67 @@
 #### surface: whether plot the empirical spatiotemporal variogram or not
 #### measurement_error: measurement error variance component. Refer to ?gstat::vgm; the input vector includes spatial, temporal, and joint measurement error components.
 #### cores: passed to variogramST. The number of cores to be used to compute semivariogram values
+#' @title Automatic Spatio-Temporal Variogram Fitting
+#' @description
+#' Fits a spatio-temporal variogram model to a given spatio-temporal data frame using automatic parameter estimation.
+#'
+#' @param stf A spatio-temporal data frame (STFDF or similar) containing the data to be modeled.
+#' @param formula A formula specifying the response and explanatory variables.
+#' @param typestv Character string specifying the type of spatio-temporal variogram model to fit. Options include "sumMetric", "separable", "productSum", "productSumOld", "simpleSumMetric", and "metric".
+#' @param candidate_model Character vector of candidate spatial/temporal variogram models to consider (e.g., c("Ste", "Exc", "Exp", "Wav")).
+#' @param guess_nugget Optional initial guess for the nugget parameter. If NULL, it is estimated automatically.
+#' @param guess_psill Optional initial guess for the partial sill parameter. If NULL, it is estimated automatically.
+#' @param tlags Integer vector specifying the temporal lags to use in the empirical variogram calculation.
+#' @param cutoff Numeric value specifying the maximum spatial lag distance to consider.
+#' @param width Numeric value specifying the width of spatial lag bins.
+#' @param aniso_method Character string specifying the method for estimating spatio-temporal anisotropy ("vgm" or "linear").
+#' @param type_joint Character string specifying the model type for the joint variogram component (e.g., "Exp").
+#' @param prodsum_k Optional numeric value for the product-sum model parameter k. If NULL, it is estimated automatically.
+#' @param surface Logical; if TRUE, computes and returns the variogram surface.
+#' @param measurement_error Numeric vector of length 3 specifying measurement error for spatial, temporal, and joint variograms, respectively.
+#' @param cores Integer specifying the number of CPU cores to use for parallel computation.
+#' @param verbose Logical; if TRUE, prints progress and diagnostic messages.
+#'
+#' @return A list containing:
+#'   \item{jointSTV}{The fitted spatio-temporal variogram model.}
+#'   \item{empSTV}{The empirical spatio-temporal variogram.}
+#'   \item{SpV}{The fitted spatial variogram model.}
+#'   \item{TV}{The fitted temporal variogram model.}
+#'   \item{STVsurface}{(Optional) The computed variogram surface, if \code{surface = TRUE}.}
+#'
+#' @details
+#' This function automates the process of fitting a spatio-temporal variogram by:
+#' \itemize{
+#'   \item Computing empirical spatial and temporal variograms.
+#'   \item Automatically selecting and fitting marginal models.
+#'   \item Estimating spatio-temporal anisotropy.
+#'   \item Constructing and fitting a joint spatio-temporal variogram model.
+#' }
+#' The function supports several popular spatio-temporal variogram structures, including separable, product-sum, and sum-metric models.
+#'
+#' @seealso \code{\link{vgmST}}, \code{\link{fit.StVariogram}}, \code{\link{marginal.variogramST}}
+#' @examples
+#' library(spacetime)
+#' library(sp)
+#' library(stars)
+#' library(sftime)
+#' data(air)
+#' stations <- st_as_sf(stations)
+#' stations <- st_transform(stations, 'EPSG:3857')
+#'
+#' airdf <- data.frame(PM10 = as.vector(air))
+#' stations_full <- do.call(c, rep(stations, length(dates)))
+#' dates_full <- rep(dates, each = nrow(stations))
+#'
+#' rural <- cbind(airdf, time = dates_full, stations_full)
+#'
+#' rural <- st_as_sftime(rural, sf_column_name = 'geometry')
+#' rr <- rural[match(rural$time, dates[3001:3060], nomatch = FALSE, incomparables = FALSE) > 0, ]
+#' rr <- as(as(as(rr, "STIDF"), "STFDF"), "STSDF")
+#' rrstv <- autofitVariogramST(
+#'  stf = rr, formula = PM10 ~ 1, surface = TRUE)
+#' rrstv
+#' @export
 autofitVariogramST <- function(stf,
                                formula,
                                typestv = "sumMetric",
@@ -46,14 +107,14 @@ autofitVariogramST <- function(stf,
     stva.ts <- marginal.variogramST(stva,
       spatial = FALSE
     )
-    stva.sp.fit <- autofitVariogram(
+    stva.sp.fit <- autofitVariogram_(
       formula = NULL, verbose = verbose,
       input_data = NULL,
       input_vgm = stva.sp,
       measurement_error = measurement_error[1],
       model = NULL,
     )
-    stva.ts.fit <- autofitVariogram(
+    stva.ts.fit <- autofitVariogram_(
       formula = NULL, verbose = verbose,
       input_data = NULL,
       input_vgm = stva.ts,
@@ -71,14 +132,14 @@ autofitVariogramST <- function(stf,
     stva.sp$np <- as.numeric(stva.sp$np)
     stva.ts$np <- as.numeric(stva.ts$np)
 
-    stva.sp.fit <- autofitVariogram(
+    stva.sp.fit <- autofitVariogram_(
       formula = NULL, verbose = verbose,
       input_data = NULL,
       input_vgm = stva.sp,
       measurement_error = measurement_error[1],
       model = candidate_model
     )
-    stva.ts.fit <- autofitVariogram(
+    stva.ts.fit <- autofitVariogram_(
       formula = NULL, verbose = verbose,
       input_data = NULL,
       input_vgm = stva.ts,
