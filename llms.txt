@@ -1,0 +1,140 @@
+# `autoSTK`
+
+- Description: Automatic spatio-temporal kriging inspired by `automap`
+  (Hiemstra et al. 2010)
+- Inherits most of `automap` functions, but extensively revised
+- Includes spatiotemporal variogram fitting and Kriging analysis
+
+# Installation
+
+- `remotes::install_github('sigmafelix/autoSTK')` in R (The `remotes`
+  package is required)
+- Before you install the package, please make it sure you have `gstat`,
+  `spacetime`, and `automap` packages in your machine
+
+# Supported functions
+
+- `autofitVariogramST`: automatically fit the spatiotemporal variogram
+- `autoKrigeST`: automatically estimate the spatiotemporal variables for
+  specified period ahead (the default value is 6 temporal units)
+  - Currently support `STFDF` and `STSDF` class and ordinary
+    spatiotemporal Kriging (e.g., `y~1`)
+- `autoKrigeST.cv`: automatically cross-validate the spatiotemporal data
+  by spatial, temporal, spatiotemporal, and random slicing
+
+# Update plan
+
+- Add support for `STIDF` class and universal spatiotemporal Kriging:
+  necessitates the `gstat` function fix for `variogramST.STIDF`
+- Transition to `sf` and `sftime` in preparation of the retirement of
+  `sp` in October 2023
+
+# **Main features**
+
+- Split data into spatial and temporal dimensions which are compatible
+  to be fitted as components of a spatio-temporal variogram
+- Find the optimal theoretical variograms with BFHS algorithm following
+  the `autofitVariogram` function of `automap` package; but several
+  changes were applied
+
+# Please note
+
+- I strongly recommend users to convert `STIDF` to `STSDF` before
+  running functions
+  - When the input is `sftime`, convert the input into `STIDF` then into
+    `STSDF`. It is done automatically in most cases.
+
+# Working example
+
+- Please consult the help page of the main functions `autoKrigeST` and
+  `autoKrigeST.cv`.
+
+``` r
+library(autoSTK)
+library(gstat)
+library(spacetime)
+library(stars)
+library(sp)
+
+data(air)
+deair = STFDF(stations, dates, data.frame(PM10 = as.vector(air)))
+deair_sf = st_as_stars(deair) %>%
+    st_transform('+proj=longlat +ellps=sphere')
+deair_sf = st_transform(deair_sf, 3857)
+deair_r = as(deair_sf, 'STFDF')
+deair_r@sp@proj4string = CRS('+proj=merc +a=6378137 +b=6378137 +lat_ts=0 +lon_0=0 +x_0=0 +y_0=0 +k=1 +units=m +nadgrids=@null +wktext +no_defs +type=crs')
+
+deair_rs = deair_r[,3701:3800]
+deair_rss = as(deair_rs, 'STSDF')
+
+## autoKrigeST
+akst_stk = autoKrigeST(formula = PM10~1, 
+                       input_data = deair_rss, 
+                       cutoff = 300000, width = 30000,
+                       type_stv = "sumMetric",
+                       model = c("Exc", "Mat", "Ste", "Exp", "Wav"),
+                       tlags = 0:7, cores = 8,
+                       verbose = TRUE)
+
+akst_stk_stars = st_as_stars(akst_stk[[1]])
+plot(akst_stk_stars[1,])
+```
+
+![](https://i.imgur.com/xDadzlJ.png)
+
+``` r
+
+## autoKrigeST.cv
+akst_cv_t = autoKrigeST.cv(formula = PM10~1, data = deair_rs,  nfold = 3, fold_dim = 'temporal', 
+                         cutoff = 300000, width = 30000, tlags = 0:7, cores = 8)
+akst_cv_s = autoKrigeST.cv(formula = PM10~1, data = deair_rs,  nfold = 3, fold_dim = 'spatial', 
+                         cutoff = 300000, width = 30000, tlags = 0:7, cores = 8)
+akst_cv_spt = autoKrigeST.cv(formula = PM10~1, data = deair_rs,  nfold = 4, fold_dim = 'spacetime', 
+                         cutoff = 300000, width = 30000, tlags = 0:7, cores = 8)
+```
+
+# Package index
+
+## All functions
+
+- [`autoKrigeST()`](https://sigmafelix.github.io/autoSTK/reference/autoKrigeST.md)
+  : Automatic Spatio-Temporal Kriging
+- [`autoKrigeST.cv()`](https://sigmafelix.github.io/autoSTK/reference/autoKrigeST.cv.md)
+  : Cross-validation of spatiotemporal Kriging
+- [`autofitVariogramST()`](https://sigmafelix.github.io/autoSTK/reference/autofitVariogramST.md)
+  : Automatic Spatio-Temporal Variogram Fitting
+- [`create_new_data()`](https://sigmafelix.github.io/autoSTK/reference/create_new_data.md)
+  : Create new spatial data for interpolation
+- [`create_new_data.ST()`](https://sigmafelix.github.io/autoSTK/reference/create_new_data.ST.md)
+  : Generate a new spatiotemporal points for the spatiotemporal
+  prediction and interpolation
+- [`create_new_data.ST.legacy()`](https://sigmafelix.github.io/autoSTK/reference/create_new_data.ST.legacy.md)
+  : Generate a new spatiotemporal points for the spatiotemporal
+  prediction and interpolation (legacy sp)
+- [`detect_temporal_unit()`](https://sigmafelix.github.io/autoSTK/reference/detect_temporal_unit.md)
+  : Autodetect the temporal unit
+- [`detect_temporal_unit.generic()`](https://sigmafelix.github.io/autoSTK/reference/detect_temporal_unit.generic.md)
+  : Autodetect the temporal unit in a lubridate/POSIXct object
+- [`detect_temporal_unit.xts()`](https://sigmafelix.github.io/autoSTK/reference/detect_temporal_unit.xts.md)
+  : Autodetect the temporal unit in a xts object
+- [`fitVariogramST()`](https://sigmafelix.github.io/autoSTK/reference/fitVariogramST.md)
+  : Fit a Spatio-Temporal Variogram
+- [`ic_stv()`](https://sigmafelix.github.io/autoSTK/reference/ic_stv.md)
+  : Compute AIC and BIC for a fitted STVariogramFit (MLE-based)
+- [`marginal.variogramST()`](https://sigmafelix.github.io/autoSTK/reference/marginal.variogramST.md)
+  : Compute the marginal spatial or temporal sample variogram
+- [`plot.autofitVariogram()`](https://sigmafelix.github.io/autoSTK/reference/plot.autofitVariogram.md)
+  : Plot the automatically fitted variogram
+- [`plot_aniso_sensitivity()`](https://sigmafelix.github.io/autoSTK/reference/plot_aniso_sensitivity.md)
+  : Sensitivity Plot of the Spatio-Temporal Anisotropy Ratio
+- [`predictKrigeST()`](https://sigmafelix.github.io/autoSTK/reference/predictKrigeST.md)
+  : Predict Using a Fitted Spatio-Temporal Kriging Model
+- [`selectModelST()`](https://sigmafelix.github.io/autoSTK/reference/selectModelST.md)
+  : Automated Spatio-Temporal Covariance Model Selection
+- [`setSTI()`](https://sigmafelix.github.io/autoSTK/reference/setSTI.md)
+  : A convenience function for the sample spatiotemporal variogram
+- [`st_param_bounds()`](https://sigmafelix.github.io/autoSTK/reference/st_param_bounds.md)
+  : Compute parameter bounds for vgmST model optimisation
+- [`test_separability()`](https://sigmafelix.github.io/autoSTK/reference/test_separability.md)
+  : Likelihood Ratio Test for Spatiotemporal Separability
+
