@@ -16,10 +16,10 @@ marginal.variogramST <- function(stv, bound, spatial = TRUE) {
   # }
   # print(stv)
   if (spatial) {
-    vg <- stv[(1:nrow(stv)) * ((stv$timelag == min(stv$timelag)) * (stv$spacelag <= bound) * !is.na(stv$gamma)), ]
+    vg <- stv[(stv$timelag == min(stv$timelag)) & (stv$spacelag <= bound) & !is.na(stv$gamma), ]
     vg$np <- as.numeric(vg$np)
   } else {
-    vg <- stv[(1:nrow(stv)) * ((stv$spacelag == min(stv$spacelag)) * !is.na(stv$gamma)), ]
+    vg <- stv[(stv$spacelag == min(stv$spacelag)) & !is.na(stv$gamma), ]
     vg$dist <- vg$timelag
     vg$id <- 0
     vg$np <- as.numeric(vg$np)

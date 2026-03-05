@@ -6,7 +6,7 @@
 \usage{
 autoKrigeST.cv(
   data,
-  fold_dim,
+  fold_dim = c("spatial", "temporal", "random", "spacetime"),
   nfold = 10L,
   formula,
   type_stv = "sumMetric",
@@ -26,7 +26,12 @@ autoKrigeST.cv(
   miscFitOptions = list(),
   measurement_error = c(0, 0, 0),
   cores = 1,
-  seed = 130425L
+  seed = 130425L,
+  variogram_from_full = FALSE,
+  optimizer = "lbfgsb",
+  objective = "WLS",
+  n_restart = 1L,
+  optimizer_control = list()
 )
 }
 \arguments{

@@ -16,7 +16,6 @@
 # Update plan
 - Add support for `STIDF` class and universal spatiotemporal Kriging: necessitates the `gstat` function fix for `variogramST.STIDF`
 - Transition to `sf` and `sftime` in preparation of the retirement of `sp` in October 2023
-- Add support for the spatiotemporal separability test (referring to [`covatest`](https://cran.r-project.org/web/packages/covatest/index.html) (De Iaco, 2020))
 
 # __Main features__
 + Split data into spatial and temporal dimensions which are compatible to be fitted as components of a spatio-temporal variogram
@@ -24,7 +23,7 @@
 
 # Please note
 - I strongly recommend users to convert `STIDF` to `STSDF` before running functions
-    - When the input is `sftime`, convert the input into `STIDF` then into `STSDF`
+    - When the input is `sftime`, convert the input into `STIDF` then into `STSDF`. It is done automatically in most cases.
 
 # Working example
 - Please consult the help page of the main functions `autoKrigeST` and `autoKrigeST.cv`.
@@ -42,7 +41,7 @@ deair_sf = st_as_stars(deair) %>%
     st_transform('+proj=longlat +ellps=sphere')
 deair_sf = st_transform(deair_sf, 3857)
 deair_r = as(deair_sf, 'STFDF')
-deair_r@sp@proj4string = CRS('+init=epsg:3857')
+deair_r@sp@proj4string = CRS('+proj=merc +a=6378137 +b=6378137 +lat_ts=0 +lon_0=0 +x_0=0 +y_0=0 +k=1 +units=m +nadgrids=@null +wktext +no_defs +type=crs')
 
 deair_rs = deair_r[,3701:3800]
 deair_rss = as(deair_rs, 'STSDF')
@@ -50,7 +49,11 @@ deair_rss = as(deair_rs, 'STSDF')
 ## autoKrigeST
 akst_stk = autoKrigeST(formula = PM10~1, 
                        input_data = deair_rss, 
-                       cutoff = 300000, width = 30000, tlags = 0:7, cores = 8)
+                       cutoff = 300000, width = 30000,
+                       type_stv = "sumMetric",
+                       model = c("Exc", "Mat", "Ste", "Exp", "Wav"),
+                       tlags = 0:7, cores = 8,
+                       verbose = TRUE)
 
 akst_stk_stars = st_as_stars(akst_stk[[1]])
 plot(akst_stk_stars[1,])
@@ -69,5 +72,3 @@ akst_cv_spt = autoKrigeST.cv(formula = PM10~1, data = deair_rs,  nfold = 4, fold
                          cutoff = 300000, width = 30000, tlags = 0:7, cores = 8)
 
 ```
-
-<sup>Created on 2021-07-15 by the [reprex package](https://reprex.tidyverse.org) (v2.0.0)</sup>

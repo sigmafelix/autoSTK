@@ -19,85 +19,101 @@ autofitVariogramST(
   prodsum_k = NULL,
   surface = FALSE,
   measurement_error = c(0, 0, 0),
-  cores = 1,
-  verbose = FALSE
+  cores = 1L,
+  verbose = FALSE,
+  optimizer = c("lbfgsb", "grid"),
+  objective = c("WLS", "MLE"),
+  n_restart = 1L,
+  optimizer_control = list()
 )
 }
 \arguments{
-\item{stf}{A spatio-temporal data frame (STFDF or similar) containing the data to be modeled.}
+\item{stf}{A spatio-temporal data frame (STFDF, STSDF, STIDF, or sftime).}
 
 \item{formula}{A formula specifying the response and explanatory variables.}
 
-\item{typestv}{Character string specifying the type of spatio-temporal variogram model to fit. Options include "sumMetric", "separable", "productSum", "productSumOld", "simpleSumMetric", and "metric".}
+\item{typestv}{Character. ST variogram model type. One of \code{"sumMetric"},
+\code{"separable"}, \code{"productSum"}, \code{"productSumOld"},
+\code{"simpleSumMetric"}, \code{"metric"}.}
 
-\item{candidate_model}{Character vector of candidate spatial/temporal variogram models to consider (e.g., c("Ste", "Exc", "Exp", "Wav")).}
+\item{candidate_model}{Character vector of candidate spatial/temporal
+variogram model families (e.g. \code{c("Ste", "Exc", "Exp", "Wav")}).}
 
-\item{guess_nugget}{Optional initial guess for the nugget parameter. If NULL, it is estimated automatically.}
+\item{guess_nugget}{Optional initial guess for the nugget. Estimated if NULL.}
 
-\item{guess_psill}{Optional initial guess for the partial sill parameter. If NULL, it is estimated automatically.}
+\item{guess_psill}{Optional initial guess for the partial sill. Estimated if NULL.}
 
-\item{tlags}{Integer vector specifying the temporal lags to use in the empirical variogram calculation.}
+\item{tlags}{Integer vector of temporal lags.}
 
-\item{cutoff}{Numeric value specifying the maximum spatial lag distance to consider.}
+\item{cutoff}{Numeric. Maximum spatial lag distance.}
 
-\item{width}{Numeric value specifying the width of spatial lag bins.}
+\item{width}{Numeric. Width of spatial lag bins.}
 
-\item{aniso_method}{Character string specifying the method for estimating spatio-temporal anisotropy ("vgm" or "linear").}
+\item{aniso_method}{Character. Method for estimating ST anisotropy ratio
+(\code{"vgm"} or \code{"linear"}).}
 
-\item{type_joint}{Character string specifying the model type for the joint variogram component (e.g., "Exp").}
+\item{type_joint}{Character. Model family for the joint variogram component.}
 
-\item{prodsum_k}{Optional numeric value for the product-sum model parameter k. If NULL, it is estimated automatically.}
+\item{prodsum_k}{Numeric. k parameter for productSum models.}
 
-\item{surface}{Logical; if TRUE, computes and returns the variogram surface.}
+\item{surface}{Logical. If TRUE, also compute and return the variogram surface.}
 
-\item{measurement_error}{Numeric vector of length 3 specifying measurement error for spatial, temporal, and joint variograms, respectively.}
+\item{measurement_error}{Numeric vector of length 3: spatial, temporal, joint.}
 
-\item{cores}{Integer specifying the number of CPU cores to use for parallel computation.}
+\item{cores}{Integer. Number of cores for \code{variogramST}.}
 
-\item{verbose}{Logical; if TRUE, prints progress and diagnostic messages.}
+\item{verbose}{Logical. If TRUE, print diagnostic messages.}
+
+\item{optimizer}{Character. Optimisation strategy: \code{"lbfgsb"} (default,
+current behaviour) or \code{"grid"} (LHS grid search + L-BFGS-B).}
+
+\item{objective}{Character. Fitting criterion: \code{"WLS"} (weighted least
+squares, default) or \code{"MLE"} (Gaussian log-likelihood; only for
+n < 500).}
+
+\item{n_restart}{Integer. Number of optimisation restarts for
+\code{optimizer = "lbfgsb"}.  Default 1 matches v1.x behaviour.}
+
+\item{optimizer_control}{Named list of extra arguments forwarded to the
+optimiser (e.g. \code{list(n_coarse = 100L)} for \code{"grid"}).}
 }
 \value{
-A list containing:
-  \item{jointSTV}{The fitted spatio-temporal variogram model.}
-  \item{empSTV}{The empirical spatio-temporal variogram.}
-  \item{SpV}{The fitted spatial variogram model.}
-  \item{TV}{The fitted temporal variogram model.}
-  \item{STVsurface}{(Optional) The computed variogram surface, if \code{surface = TRUE}.}
+A \code{STVariogramFit} object (list) with elements:
+  \describe{
+    \item{jointSTV}{Fitted ST variogram model.}
+    \item{empSTV}{Empirical ST variogram.}
+    \item{SpV}{Fitted spatial marginal variogram.}
+    \item{TV}{Fitted temporal marginal variogram.}
+    \item{STVsurface}{(Optional) Variogram surface if \code{surface = TRUE}.}
+    \item{optimizer}{Character. Optimiser used.}
+    \item{objective}{Character. Objective function used.}
+    \item{loglik}{Numeric. Log-likelihood (only when \code{objective = "MLE"}).}
+    \item{n_obs}{Integer. Number of observations (for AIC/BIC).}
+  }
 }
 \description{
-Fits a spatio-temporal variogram model to a given spatio-temporal data frame using automatic parameter estimation.
-}
-\details{
-This function automates the process of fitting a spatio-temporal variogram by:
-\itemize{
-  \item Computing empirical spatial and temporal variograms.
-  \item Automatically selecting and fitting marginal models.
-  \item Estimating spatio-temporal anisotropy.
-  \item Constructing and fitting a joint spatio-temporal variogram model.
-}
-The function supports several popular spatio-temporal variogram structures, including separable, product-sum, and sum-metric models.
+Fits a spatio-temporal variogram model to a spatio-temporal data frame using
+automatic parameter estimation.  Supports multiple optimisers and objective
+functions (v2.0+).
 }
 \examples{
 library(spacetime)
 library(sp)
-library(stars)
 library(sftime)
 data(air)
 stations <- st_as_sf(stations)
 stations <- st_transform(stations, 'EPSG:3857')
-
 airdf <- data.frame(PM10 = as.vector(air))
 stations_full <- do.call(c, rep(stations, length(dates)))
 dates_full <- rep(dates, each = nrow(stations))
-
 rural <- cbind(airdf, time = dates_full, stations_full)
-
 rural <- st_as_sftime(rural, sf_column_name = 'geometry')
-rr <- rural[match(rural$time, dates[3001:3060], nomatch = FALSE, incomparables = FALSE) > 0, ]
-rrstv <- autofitVariogramST(
- stf = rr, formula = PM10 ~ 1, surface = TRUE)
+rr <- rural[match(rural$time, dates[3001:3060], nomatch = FALSE) > 0, ]
+rr <- as(as(as(rr, "STIDF"), "STFDF"), "STSDF")
+rrstv <- autofitVariogramST(stf = rr, formula = PM10 ~ 1, surface = TRUE)
 rrstv
 }
 \seealso{
-\code{\link{vgmST}}, \code{\link{fit.StVariogram}}, \code{\link{marginal.variogramST}}
+\code{\link{fitVariogramST}}, \code{\link{selectModelST}},
+  \code{\link{test_separability}}
 }

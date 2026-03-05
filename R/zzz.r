@@ -1,4 +1,8 @@
 ## Misc for npsp integration: subject to retire
+packageStartupMessage(
+  paste0("autoSTK ", utils::packageVersion("autoSTK"))
+)
+
 
 svariso <- function(input, vars, maxlag = 30000, nlags = 10, estimator = "modulus") {
   if (sum(grepl("Spatial.*", class(input))) != 0) {
