@@ -41,7 +41,6 @@ Suggests:
     covatest,
     fields,
     GpGp,
-    INLA,
     stars,
     bench,
     roxygen2
