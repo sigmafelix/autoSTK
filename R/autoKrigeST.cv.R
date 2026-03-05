@@ -55,7 +55,8 @@
 #'   cutoff = 300000, width = 30000, tlags = 0:7, cores = 8
 #' )
 #' @export
-autoKrigeST.cv <- function(data, fold_dim,
+autoKrigeST.cv <- function(data,
+                           fold_dim = c('spatial', 'temporal', 'random', 'spacetime'),
                            nfold = 10L,
                            formula,
                            type_stv = "sumMetric",
@@ -75,10 +76,13 @@ autoKrigeST.cv <- function(data, fold_dim,
                            miscFitOptions = list(),
                            measurement_error = c(0, 0, 0),
                            cores = 1,
-                           seed = 130425L) {
-  if (!grepl("^(spa|temp|tim|rand|)*", fold_dim)) {
-    stop("The argument fold_dim is not valid. Enter one of spatial, temporal, and random.")
-  }
+                           seed = 130425L,
+                           variogram_from_full = FALSE,
+                           optimizer = "lbfgsb",
+                           objective = "WLS",
+                           n_restart = 1L,
+                           optimizer_control = list()) {
+  fold_dim <- match.arg(fold_dim)
 
   len_time <- length(data@time)
   len_space <- length(data@sp)
@@ -129,7 +133,7 @@ autoKrigeST.cv <- function(data, fold_dim,
         targ <- ceiling(len_time / nfold)
         v_t <- rep(targ, sqrt(nfold))
         v_tindex <- sample(sqrt(nfold), q_t, replace = FALSE)
-        v_t[v_tindex] <- v[v_tindex] + 1
+        v_t[v_tindex] <- v_t[v_tindex] + 1
       } else {
         targ <- len_time / sqrt(nfold)
         v_t <- rep(targ, sqrt(nfold))
@@ -166,39 +170,79 @@ autoKrigeST.cv <- function(data, fold_dim,
   }
 
   folded <- get_data_fold(data = data, dimension = fold_dim, nfold = nfold)
-  data_fold <- folded[[1]]
+  data_fold       <- folded[[1]]
   data_validation <- folded[[2]]
 
-  cvresult <- mapply(function(id, vd) {
-    kriged <- autoKrigeST(
-      formula = formula,
-      input_data = id,
-      new_data = vd,
-      type_stv = type_stv,
-      model = model,
-      block = block,
-      kappa = kappa,
-      fix.values = fix.values,
-      tlags = tlags,
-      cutoff = cutoff,
-      width = width,
-      nmax = nmax,
-      prodsum_k = prodsum_k,
-      start_vals = start_vals,
-      miscFitOptions = miscFitOptions,
+  # Optionally fit one variogram on the full dataset and reuse across folds.
+  # This is statistically valid when the variogram is assumed stationary and
+  # estimated from all available data, and is much faster than per-fold fitting.
+  full_vgm_fit <- NULL
+  if (variogram_from_full) {
+    message("Fitting variogram on full dataset (variogram_from_full = TRUE)...")
+    full_vgm_fit <- fitVariogramST(
+      formula           = formula,
+      data              = .to_stsdf(data),
+      typestv           = type_stv,
+      candidate_model   = model,
+      tlags             = tlags,
+      cutoff            = cutoff,
+      width             = width,
+      aniso_method      = aniso_method,
+      type_joint        = type_joint,
       measurement_error = measurement_error,
-      cores = cores
-    )$krige_output$var1.pred
-    form_char <- as.character(formula)
-    actual <- as.vector(vd@data[, form_char[2]])
+      cores             = cores,
+      optimizer         = optimizer,
+      objective         = objective,
+      n_restart         = n_restart,
+      optimizer_control = optimizer_control
+    )
+  }
 
-    RMSE <- sqrt(mean((kriged - actual)^2))
-    MAE <- mean(abs(kriged - actual))
-    BIAS <- mean(kriged) - mean(actual)
-    return(list(RMSE = RMSE, MAE = MAE, BIAS = BIAS))
+  cvresult <- mapply(function(id, vd) {
+    if (variogram_from_full && !is.null(full_vgm_fit)) {
+      # Reuse pre-fitted variogram; only predict
+      kriged_obj <- predictKrigeST(
+        fit     = full_vgm_fit,
+        data    = id,
+        newdata = vd,
+        formula = formula,
+        nmax    = nmax
+      )
+    } else {
+      kriged_obj <- autoKrigeST(
+        formula           = formula,
+        input_data        = id,
+        new_data          = vd,
+        type_stv          = type_stv,
+        model             = model,
+        block             = block,
+        kappa             = kappa,
+        fix.values        = fix.values,
+        tlags             = tlags,
+        cutoff            = cutoff,
+        width             = width,
+        nmax              = nmax,
+        prodsum_k         = prodsum_k,
+        measurement_error = measurement_error,
+        cores             = cores,
+        optimizer         = optimizer,
+        objective         = objective,
+        n_restart         = n_restart,
+        optimizer_control = optimizer_control
+      )
+    }
+
+    kriged    <- kriged_obj$krige_output$var1.pred
+    form_char <- as.character(formula)
+    actual    <- as.vector(vd@data[, form_char[2L]])
+
+    RMSE <- sqrt(mean((kriged - actual)^2, na.rm = TRUE))
+    MAE  <- mean(abs(kriged - actual), na.rm = TRUE)
+    BIAS <- mean(kriged, na.rm = TRUE) - mean(actual, na.rm = TRUE)
+    list(RMSE = RMSE, MAE = MAE, BIAS = BIAS)
   }, data_fold, data_validation, SIMPLIFY = FALSE)
 
   res <- do.call(rbind, cvresult)
-  res <- data.frame(cbind(CVFold = 1:nfold, res))
+  res <- data.frame(cbind(CVFold = seq_len(nfold), res))
   return(res)
 }

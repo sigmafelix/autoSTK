@@ -1,3 +1,24 @@
+## Internal wrapper around automap::autofitVariogram that accepts sf/sftime
+## by coercing them to a Spatial* class gstat can consume.
+autofitVariogram <- function(formula, input_data, ...) {
+  input_data <- .coerce_variogram_input(input_data)
+  automap::autofitVariogram(formula = formula, input_data = input_data, ...)
+}
+
+# Convert variogram input to a class that gstat::variogram can coerce.
+.coerce_variogram_input <- function(input_data) {
+  if (inherits(input_data, "sftime")) {
+    # Drop sftime class to avoid methods::as(, "Spatial") dispatch issues.
+    class(input_data) <- setdiff(class(input_data), "sftime")
+  }
+
+  if (inherits(input_data, "sf")) {
+    return(as(input_data, "Spatial"))
+  }
+
+  input_data
+}
+
 autofitVariogram_ <- function(formula, input_data, input_vgm = NULL, model = c("Sph", "Exp", "Gau", "Ste"),
                              kappa = c(0.05, seq(0.1, 2, 0.1), 5, 10), fix.values = c(NA, NA, NA),
                              verbose = FALSE, GLS.model = NA, start_vals = c(NA, NA, NA), measurement_error = 0,
@@ -66,6 +87,8 @@ autofitVariogram_ <- function(formula, input_data, input_vgm = NULL, model = c("
   }
 
   if (!is.null(input_data) & is.null(input_vgm)) {
+    variogram_input <- .coerce_variogram_input(input_data)
+
     # Check for anisotropy parameters
     if ("alpha" %in% names(list(...))) warning("Anisotropic variogram model fitting not supported, see the documentation of autofitVariogram for more details.")
 
@@ -75,10 +98,10 @@ autofitVariogram_ <- function(formula, input_data, input_vgm = NULL, model = c("
 
     # If you specifiy a variogram model in GLS.model the Generelised least squares sample variogram is constructed
     if (!is(GLS.model, "variogramModel")) {
-      experimental_variogram <- variogram(formula, input_data, boundaries = boundaries, ...)
+      experimental_variogram <- variogram(formula, variogram_input, boundaries = boundaries, ...)
     } else {
       if (verbose) cat("Calculating GLS sample variogram\n")
-      g <- gstat(NULL, "bla", formula, input_data, model = GLS.model, set = list(gls = 1))
+      g <- gstat(NULL, "bla", formula, variogram_input, model = GLS.model, set = list(gls = 1))
       experimental_variogram <- variogram(g, boundaries = boundaries, ...)
     }
 
@@ -89,7 +112,7 @@ autofitVariogram_ <- function(formula, input_data, input_vgm = NULL, model = c("
         if (length(experimental_variogram$np[experimental_variogram$np < miscFitOptions[["min.np.bin"]]]) == 0 | length(boundaries) == 1) break
         boundaries <- boundaries[2:length(boundaries)]
         if (!is(GLS.model, "variogramModel")) {
-          experimental_variogram <- variogram(formula, input_data, boundaries = boundaries, ...)
+          experimental_variogram <- variogram(formula, variogram_input, boundaries = boundaries, ...)
         } else {
           experimental_variogram <- variogram(g, boundaries = boundaries, ...)
         }

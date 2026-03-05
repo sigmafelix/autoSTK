@@ -1,0 +1,14 @@
+url: https://sigmafelix.github.io/autoSTK/
+
+
+template:
+  bootstrap: 5
+  bootswatch: simplex
+  params:
+    mathjax: true
+
+articles:
+navbar:
+  structure:
+    left:  [home, reference, articles]
+    right: [lang, search, github]

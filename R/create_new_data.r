@@ -9,16 +9,17 @@
 create_new_data <- function(obj, gen_mode = "chull", npoints = 1e4, return_class = "sf") {
   # Function that creates a new_data object if one is missing
   distinguishsf <- function(infeat) {
-    if (any(!"sf" %in% class(infeat)) | !grepl("^Spatial", class(infeat))) {
+    if (!inherits(infeat, "sf") && !grepl("^Spatial", class(infeat))) {
       stop("The class is neither sf nor Spatial*. Please check your input.")
     }
-    if (any("sf" %in% class(infeat))) {
+    if (inherits(infeat, "sf")) {
       return(infeat)
     } else {
-      st_as_sf(infeat)
+      st_as_sftime(infeat)
       # as(infeat, "Spatial")
     }
   }
+  # obj <- distinguishsf(obj)
 
   if (gen_mode == "rect") {
     obj.b <- st_as_sf(obj)
@@ -136,7 +137,7 @@ create_new_data.ST.legacy <- function(obj, form, gen_mode = "chull", npoints = 1
   if (!is.null(forward)) {
     # TODO: temporal unit-dependent setting
     if (tunit == "hours") {
-      ts.base <- tunit + seq(0, 3600 * forward, 3600)
+      ts.base <- ts.base + seq(0, 3600 * forward, 3600)
     } else if (tunit == "minutes") {
       ts.base <- ts.base + seq(0, 60 * forward, 60)
     } else {
@@ -171,6 +172,9 @@ create_new_data.ST <- function(obj,
                                gen_mode = "chull",
                                npoints = 1e4,
                                forward = 6) {
+  if (!inherits(obj, "sf")) {
+    obj <- st_as_sftime(obj)
+  }
   st.geom <- obj[[attr(obj, "sf_column")]]
   st.time <- obj[[attr(obj, "time_column")]]
   sp.base <- st.geom
