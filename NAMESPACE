@@ -16,6 +16,9 @@ export(detect_temporal_unit.xts)
 export(selectModelST)
 export(test_separability)
 export(st_param_bounds)
+export(estimate_initial_params)
+export(cubble_to_sftime)
+export(plot_aniso_sensitivity)
 
 # S3 methods
 S3method(print, STVariogramFit)
@@ -39,3 +42,4 @@ importFrom('stats', 'as.formula', 'kmeans', 'median', 'weighted.mean',
            'optim', 'runif')
 importFrom('utils', 'modifyList', 'setTxtProgressBar', 'txtProgressBar')
 importFrom('lhs', 'randomLHS')
+importFrom('zoo', 'index')

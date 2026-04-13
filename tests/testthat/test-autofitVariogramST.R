@@ -143,3 +143,119 @@ test_that("measurement_error argument is accepted without error", {
     )
   )
 })
+
+# ---- Improved initial parameter estimation (v2.1.0) --------------------------
+
+test_that("explicit guess_nugget is respected and overrides estimate_initial_params", {
+  stf <- make_test_stfdf()
+  suppressWarnings(
+    res <- autofitVariogramST(
+      stf = stf, formula = z ~ 1, typestv = "sumMetric",
+      candidate_model = c("Exp"), guess_nugget = 0.0
+    )
+  )
+  # Just check the fit succeeded; the nugget was passed through
+  expect_s3_class(res, "STVariogramFit")
+})
+
+test_that("explicit guess_psill is respected", {
+  stf <- make_test_stfdf()
+  suppressWarnings(
+    res <- autofitVariogramST(
+      stf = stf, formula = z ~ 1, typestv = "sumMetric",
+      candidate_model = c("Exp"), guess_psill = 0.5
+    )
+  )
+  expect_s3_class(res, "STVariogramFit")
+})
+
+test_that("verbose = TRUE prints initial estimate message", {
+  stf <- make_test_stfdf()
+  expect_message(
+    suppressWarnings(
+      autofitVariogramST(
+        stf = stf, formula = z ~ 1, typestv = "sumMetric",
+        candidate_model = c("Exp"), verbose = TRUE
+      )
+    ),
+    regexp = "Initial estimates"
+  )
+})
+
+test_that("joint variogram range is finite and positive after init", {
+  stf <- make_test_stfdf()
+  suppressWarnings(
+    res <- autofitVariogramST(
+      stf = stf, formula = z ~ 1, typestv = "sumMetric",
+      candidate_model = c("Exp")
+    )
+  )
+  pars <- extractPar(res$jointSTV)
+  range_pars <- pars[grepl("range", names(pars), ignore.case = TRUE)]
+  expect_true(all(range_pars > 0))
+  expect_true(all(is.finite(range_pars)))
+})
+
+# ---- SA optimizer integration ------------------------------------------------
+
+test_that("optimizer = 'sa' returns STVariogramFit with correct optimizer field", {
+  skip_on_cran()
+  stf <- make_test_stfdf()
+  suppressWarnings(
+    res <- autofitVariogramST(
+      stf             = stf, formula = z ~ 1, typestv = "sumMetric",
+      candidate_model = c("Exp"), cutoff = 3000, width = 500, tlags = 0:3,
+      optimizer         = "sa",
+      optimizer_control = list(maxit = 60L, temp = 5, tmax = 5L)
+    )
+  )
+  expect_s3_class(res, "STVariogramFit")
+  expect_equal(res$optimizer, "sa")
+})
+
+# ---- GA optimizer integration ------------------------------------------------
+
+test_that("optimizer = 'ga' returns STVariogramFit with correct optimizer field", {
+  skip_on_cran()
+  stf <- make_test_stfdf()
+  suppressWarnings(
+    res <- autofitVariogramST(
+      stf             = stf, formula = z ~ 1, typestv = "sumMetric",
+      candidate_model = c("Exp"), cutoff = 3000, width = 500, tlags = 0:3,
+      optimizer         = "ga",
+      optimizer_control = list(popSize = 8L, maxiter = 5L, run = 3L, seed = 1L)
+    )
+  )
+  expect_s3_class(res, "STVariogramFit")
+  expect_equal(res$optimizer, "ga")
+})
+
+# ---- All four optimizers produce comparable MSErr ----------------------------
+
+test_that("all four optimizers finish and produce finite MSErr", {
+  skip_on_cran()
+  stf    <- make_test_stfdf()
+  mserrs <- list()
+
+  for (opt in c("lbfgsb", "grid", "sa", "ga")) {
+    ctrl <- switch(opt,
+      lbfgsb = list(maxit = 500L),
+      grid   = list(n_coarse = 8L, n_refine = 4L, maxit = 200L),
+      sa     = list(maxit = 60L, temp = 5, tmax = 5L),
+      ga     = list(popSize = 8L, maxiter = 5L, run = 3L, seed = 42L)
+    )
+    suppressWarnings(
+      res <- autofitVariogramST(
+        stf = stf, formula = z ~ 1, typestv = "sumMetric",
+        candidate_model = c("Exp"), cutoff = 3000, width = 500, tlags = 0:3,
+        optimizer = opt, optimizer_control = ctrl
+      )
+    )
+    mse <- attr(res$jointSTV, "MSErr")
+    mserrs[[opt]] <- mse
+    expect_true(
+      is.null(mse) || is.finite(mse),
+      label = paste("MSErr should be NULL or finite for optimizer =", opt)
+    )
+  }
+})

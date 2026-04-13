@@ -126,7 +126,8 @@ predictKrigeST <- function(fit, data, newdata, formula,
 #' @param measurement_error Numeric vector (3). Measurement error components.
 #' @param cores Integer. Cores for variogramST computation.
 #' @param verbose Logical. Print progress messages.
-#' @param optimizer Character. \code{"lbfgsb"} or \code{"grid"}.
+#' @param optimizer Character. One of \code{"lbfgsb"} (default), \code{"grid"},
+#'   \code{"sa"} (simulated annealing), or \code{"ga"} (genetic algorithm).
 #' @param objective Character. \code{"WLS"} or \code{"MLE"}.
 #' @param n_restart Integer. Number of optimisation restarts.
 #' @param optimizer_control List. Extra control arguments for the optimiser.
@@ -191,6 +192,10 @@ autoKrigeST <- function(formula,
       forward  = forward
     )
   }
+
+  # Normalise cubble → sftime early so the rest of the function is class-agnostic
+  if (.is_cubble(input_data)) input_data <- cubble_to_sftime(input_data)
+  if (.is_cubble(new_data))   new_data   <- cubble_to_sftime(new_data)
 
   if (inherits(input_data, "ST")) {
     input_data <- sftime::st_as_sftime(input_data)

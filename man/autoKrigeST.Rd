@@ -93,7 +93,8 @@ range, sill.}
 
 \item{verbose}{Logical. Print progress messages.}
 
-\item{optimizer}{Character. \code{"lbfgsb"} or \code{"grid"}.}
+\item{optimizer}{Character. One of \code{"lbfgsb"} (default), \code{"grid"},
+\code{"sa"} (simulated annealing), or \code{"ga"} (genetic algorithm).}
 
 \item{objective}{Character. \code{"WLS"} or \code{"MLE"}.}
 
