@@ -98,7 +98,7 @@ deair <- STFDF(stations, dates, data.frame(PM10 = as.vector(air)))
 deair_sf <- st_as_stars(deair, crs = "+proj=longlat +ellps=sphere")
 deair_sf <- st_transform(deair_sf, 3857)
 deair_r <- as(deair_sf, "STFDF")
-deair_r@sp@proj4string <- CRS("+init=epsg:3857")
+deair_r@sp@proj4string <- CRS("EPSG:3857")
 deair_rs <- deair_r[, 3751:3800]
 ## autoKrigeST.cv test
 akst_cv_t <- autoKrigeST.cv(

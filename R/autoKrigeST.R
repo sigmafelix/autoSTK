@@ -133,12 +133,16 @@ predictKrigeST <- function(fit, data, newdata, formula,
 #' @param optimizer_control List. Extra control arguments for the optimiser.
 #' @return An \code{autoKrigeST} object.
 #' @examples
+#' library(spacetime)
+#' library(gstat)
 #' data(air)
 #' deair <- STFDF(stations, dates, data.frame(PM10 = as.vector(air)))
 #' deair_rs <- deair[, 3751:3800]
 #' ## Not run:
-#' # akst <- autoKrigeST(formula = PM10 ~ 1, input_data = deair_rs,
-#' #                     cutoff = 300000, width = 30000, tlags = 0:7, cores = 4)
+#' \dontrun{
+#' akst <- autoKrigeST(formula = PM10 ~ 1, input_data = deair_rs,
+#'                     cutoff = 300000, width = 30000, tlags = 0:7, cores = 4)
+#' }
 #' @export
 autoKrigeST <- function(formula,
                         input_data,

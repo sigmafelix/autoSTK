@@ -1,7 +1,7 @@
 Package: autoSTK
 Type: Package
 Title: Automatic Spatio-Temporal Kriging
-Version: 2.1.0
+Version: 2.1.1
 Authors@R: c(
     person("Insang", "Song", email = "geoissong@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-8732-3256"))
@@ -30,11 +30,12 @@ Imports:
     sftime,
     lattice,
     lhs,
+    future,
+    future.apply,
     zoo
 Suggests:
     testthat (>= 3.0.0),
     rgl,
-    future,
     furrr,
     GA,
     cubble,
