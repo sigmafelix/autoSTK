@@ -1,17 +1,20 @@
 Package: autoSTK
 Type: Package
 Title: Automatic Spatio-Temporal Kriging
-Version: 2.0.0
+Version: 2.1.1
 Authors@R: c(
     person("Insang", "Song", email = "geoissong@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-8732-3256"))
     )
 Description: Automatic spatio-temporal Kriging extending the automap package
     (Hiemstra et al. 2010). Provides automatic variogram model fitting with
-    multiple optimisers (L-BFGS-B with multi-start, LHS grid search), covariance
-    structure selection via AIC/BIC or cross-validation, and spatiotemporal
-    prediction via gstat. Four cross-validation strategies for spatiotemporal
-    data are implemented.
+    data-driven initial parameter estimation (practical-range based) and
+    multiple optimisers: L-BFGS-B with multi-start, LHS grid search,
+    Simulated Annealing (SANN), and Genetic Algorithm (via the GA package or
+    built-in Differential Evolution fallback). Covariance structure selection
+    via AIC/BIC or cross-validation, and spatiotemporal prediction via gstat.
+    Input classes sf, sftime, spacetime ST*DF, and cubble are all supported.
+    Four cross-validation strategies for spatiotemporal data are implemented.
 License: MIT + file LICENSE
 Encoding: UTF-8
 BugReports: https://github.com/sigmafelix/autoSTK/issues
@@ -26,13 +29,16 @@ Imports:
     sf,
     sftime,
     lattice,
-    lhs
+    lhs,
+    future,
+    future.apply,
+    zoo
 Suggests:
     testthat (>= 3.0.0),
     rgl,
-    future,
     furrr,
     GA,
+    cubble,
     mlrMBO,
     ParamHelpers,
     smoof,

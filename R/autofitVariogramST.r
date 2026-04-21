@@ -27,15 +27,32 @@
 #' @param measurement_error Numeric vector of length 3: spatial, temporal, joint.
 #' @param cores Integer. Number of cores for \code{variogramST}.
 #' @param verbose Logical. If TRUE, print diagnostic messages.
-#' @param optimizer Character. Optimisation strategy: \code{"lbfgsb"} (default,
-#'   current behaviour) or \code{"grid"} (LHS grid search + L-BFGS-B).
+#' @param optimizer Character. Optimisation strategy:
+#'   \code{"lbfgsb"} (default — multi-start L-BFGS-B),
+#'   \code{"grid"} (LHS grid search + L-BFGS-B refinement),
+#'   \code{"sa"} (simulated annealing via \code{optim(method = "SANN")}), or
+#'   \code{"ga"} (genetic algorithm via the \pkg{GA} package).
 #' @param objective Character. Fitting criterion: \code{"WLS"} (weighted least
 #'   squares, default) or \code{"MLE"} (Gaussian log-likelihood; only for
 #'   n < 500).
 #' @param n_restart Integer. Number of optimisation restarts for
 #'   \code{optimizer = "lbfgsb"}.  Default 1 matches v1.x behaviour.
 #' @param optimizer_control Named list of extra arguments forwarded to the
-#'   optimiser (e.g. \code{list(n_coarse = 100L)} for \code{"grid"}).
+#'   optimiser.  Recognised keys differ by optimiser:
+#'   \describe{
+#'     \item{\code{"lbfgsb"}}{
+#'       \code{maxit} (default 2500).}
+#'     \item{\code{"grid"}}{
+#'       \code{n_coarse} (default 50), \code{n_refine} (default 30),
+#'       \code{maxit} (default 2500).}
+#'     \item{\code{"sa"}}{
+#'       \code{maxit} (default 5000), \code{temp} (initial temperature,
+#'       default 10), \code{tmax} (steps before cooling, default 10).}
+#'     \item{\code{"ga"}}{
+#'       \code{popSize} (default 50), \code{maxiter} (default 200),
+#'       \code{run} (early-stopping generations without improvement,
+#'       default 30), \code{seed} (default 42).}
+#'   }
 #'
 #' @return A \code{STVariogramFit} object (list) with elements:
 #'   \describe{
@@ -85,7 +102,7 @@ autofitVariogramST <- function(stf,
                                measurement_error = c(0, 0, 0),
                                cores             = 1L,
                                verbose           = FALSE,
-                               optimizer         = c("lbfgsb", "grid"),
+                               optimizer         = c("lbfgsb", "grid", "sa", "ga"),
                                objective         = c("WLS", "MLE"),
                                n_restart         = 1L,
                                optimizer_control = list()) {
@@ -147,44 +164,45 @@ autofitVariogramST <- function(stf,
     temporalVgm = stva.ts.fit$var_model
   )
 
-  # ---- Initial parameter guesses ------------------------------------------
+  # ---- Data-driven initial parameter estimates ----------------------------
+  # estimate_initial_params() reads the empirical variogram directly:
+  # nugget  <- lower-quartile of gamma at near-zero spatial lags
+  # sill    <- 95th-percentile plateau of the spatial marginal
+  # *_range <- practical range (lag where gamma first reaches 95% of sill)
+  init_est <- estimate_initial_params(stva)
+
   if (is.null(guess_nugget)) {
-    guess_nugget <- max(
-      min(stva$gamma),
-      min(stva$gamma) - 0.5 * (min(stva.sp$gamma) + min(stva.ts$gamma))
-    )
-    guess_nugget <- ifelse(guess_nugget < 0, 0, guess_nugget)
+    guess_nugget <- init_est$nugget
   }
   if (is.null(guess_psill)) {
-    guess_psill_c1 <- ifelse(
-      0.5 * (max(stva$gamma) - max(stva.sp$gamma, stva.ts$gamma)) < 0,
-      min(stva$gamma) * 2,
-      0.5 * (max(stva$gamma) - max(stva.sp$gamma, stva.ts$gamma))
-    )
-    guess_psill_c2 <- ifelse(
-      0.5 * (stva$gamma[length(stva$gamma)] -
-               max(stva.sp$gamma, stva.ts$gamma)) < 0,
-      min(stva$gamma) * 2,
-      0.5 * (stva$gamma[length(stva$gamma)] -
-               max(stva.sp$gamma, stva.ts$gamma))
-    )
     if (typestv == "metric") {
-      guess_psill <- 0.5 * max(stva.sp$gamma)
+      guess_psill <- init_est$psill * 0.5
     } else {
-      guess_psill <- max(0.1 * max(stva.sp$gamma),
-                         min(guess_psill_c1, guess_psill_c2))
+      guess_psill <- init_est$psill
     }
   }
   if (is.null(prodsum_k)) {
-    prodsum_k <- 4 / max(stva.sp$gamma)
+    # k = (1/sill) keeps the product-sum within a unit-sill interpretation
+    prodsum_k <- 1.0 / max(init_est$sill, 1e-6)
   }
 
-  sill    <- max(stva$gamma) * 0.6
-  stv.jo  <- vgm(
+  if (verbose) {
+    message(sprintf(
+      "Initial estimates — nugget: %.4g  psill: %.4g  sp_range: %.4g  ts_range: %.4g",
+      guess_nugget, guess_psill, init_est$sp_range, init_est$ts_range
+    ))
+  }
+
+  sill   <- init_est$sill
+  # Joint variogram range: use estimated spatial practical range scaled by
+  # the anisotropy ratio so the joint component spans the ST domain.
+  joint_range <- sqrt(init_est$sp_range^2 + (stv.ani * init_est$ts_range)^2)
+  stv.jo <- vgm(
     model  = type_joint,
-    psill  = guess_psill, nugget = guess_nugget,
+    psill  = guess_psill,
+    nugget = guess_nugget,
     Err    = measurement_error[3],
-    range  = 0.25 * sqrt(stv.ani^2 + (stv.ani * max(stva$spacelag))^2)
+    range  = joint_range
   )
 
   # ---- Initial vgmST model ------------------------------------------------
@@ -227,7 +245,14 @@ autofitVariogramST <- function(stf,
 
   # ---- Optimise -----------------------------------------------------------
   ctrl <- modifyList(
-    list(n_coarse = 50L, n_refine = 30L, maxit = 2500L),
+    list(
+      # lbfgsb / grid
+      n_coarse = 50L, n_refine = 30L, maxit = 2500L,
+      # sa
+      temp = 10, tmax = 10L,
+      # ga
+      popSize = 50L, maxiter = 200L, run = 30L, seed = 42L
+    ),
     optimizer_control
   )
 
@@ -246,6 +271,23 @@ autofitVariogramST <- function(stf,
       n_coarse       = ctrl$n_coarse,
       n_refine       = ctrl$n_refine,
       maxit          = ctrl$maxit
+    ),
+    sa = .optimize_stv_sa(
+      stva_emp       = stva,
+      model_template = variost.mod,
+      bounds         = bounds,
+      maxit          = ctrl$maxit,
+      temp           = ctrl$temp,
+      tmax           = ctrl$tmax
+    ),
+    ga = .optimize_stv_ga(
+      stva_emp       = stva,
+      model_template = variost.mod,
+      bounds         = bounds,
+      popSize        = ctrl$popSize,
+      maxiter        = ctrl$maxiter,
+      run            = ctrl$run,
+      seed           = ctrl$seed
     )
   )
 

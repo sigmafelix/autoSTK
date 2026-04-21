@@ -93,7 +93,8 @@ range, sill.}
 
 \item{verbose}{Logical. Print progress messages.}
 
-\item{optimizer}{Character. \code{"lbfgsb"} or \code{"grid"}.}
+\item{optimizer}{Character. One of \code{"lbfgsb"} (default), \code{"grid"},
+\code{"sa"} (simulated annealing), or \code{"ga"} (genetic algorithm).}
 
 \item{objective}{Character. \code{"WLS"} or \code{"MLE"}.}
 
@@ -110,10 +111,14 @@ Internally calls \code{\link{fitVariogramST}} then
 \code{\link{predictKrigeST}}.
 }
 \examples{
+library(spacetime)
+library(gstat)
 data(air)
 deair <- STFDF(stations, dates, data.frame(PM10 = as.vector(air)))
 deair_rs <- deair[, 3751:3800]
 ## Not run:
-# akst <- autoKrigeST(formula = PM10 ~ 1, input_data = deair_rs,
-#                     cutoff = 300000, width = 30000, tlags = 0:7, cores = 4)
+\dontrun{
+akst <- autoKrigeST(formula = PM10 ~ 1, input_data = deair_rs,
+                    cutoff = 300000, width = 30000, tlags = 0:7, cores = 4)
+}
 }

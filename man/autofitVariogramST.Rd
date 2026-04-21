@@ -21,7 +21,7 @@ autofitVariogramST(
   measurement_error = c(0, 0, 0),
   cores = 1L,
   verbose = FALSE,
-  optimizer = c("lbfgsb", "grid"),
+  optimizer = c("lbfgsb", "grid", "sa", "ga"),
   objective = c("WLS", "MLE"),
   n_restart = 1L,
   optimizer_control = list()
@@ -64,8 +64,11 @@ variogram model families (e.g. \code{c("Ste", "Exc", "Exp", "Wav")}).}
 
 \item{verbose}{Logical. If TRUE, print diagnostic messages.}
 
-\item{optimizer}{Character. Optimisation strategy: \code{"lbfgsb"} (default,
-current behaviour) or \code{"grid"} (LHS grid search + L-BFGS-B).}
+\item{optimizer}{Character. Optimisation strategy:
+\code{"lbfgsb"} (default — multi-start L-BFGS-B),
+\code{"grid"} (LHS grid search + L-BFGS-B refinement),
+\code{"sa"} (simulated annealing via \code{optim(method = "SANN")}), or
+\code{"ga"} (genetic algorithm via the \pkg{GA} package).}
 
 \item{objective}{Character. Fitting criterion: \code{"WLS"} (weighted least
 squares, default) or \code{"MLE"} (Gaussian log-likelihood; only for
@@ -75,7 +78,21 @@ n < 500).}
 \code{optimizer = "lbfgsb"}.  Default 1 matches v1.x behaviour.}
 
 \item{optimizer_control}{Named list of extra arguments forwarded to the
-optimiser (e.g. \code{list(n_coarse = 100L)} for \code{"grid"}).}
+optimiser.  Recognised keys differ by optimiser:
+\describe{
+  \item{\code{"lbfgsb"}}{
+    \code{maxit} (default 2500).}
+  \item{\code{"grid"}}{
+    \code{n_coarse} (default 50), \code{n_refine} (default 30),
+    \code{maxit} (default 2500).}
+  \item{\code{"sa"}}{
+    \code{maxit} (default 5000), \code{temp} (initial temperature,
+    default 10), \code{tmax} (steps before cooling, default 10).}
+  \item{\code{"ga"}}{
+    \code{popSize} (default 50), \code{maxiter} (default 200),
+    \code{run} (early-stopping generations without improvement,
+    default 30), \code{seed} (default 42).}
+}}
 }
 \value{
 A \code{STVariogramFit} object (list) with elements:
