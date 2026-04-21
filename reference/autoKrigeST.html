@@ -11,7 +11,7 @@ predictKrigeST."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">autoSTK</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.1.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -190,7 +190,8 @@ range, sill.</p></dd>
 
 
 <dt id="arg-optimizer">optimizer<a class="anchor" aria-label="anchor" href="#arg-optimizer"></a></dt>
-<dd><p>Character. <code>"lbfgsb"</code> or <code>"grid"</code>.</p></dd>
+<dd><p>Character. One of <code>"lbfgsb"</code> (default), <code>"grid"</code>,
+<code>"sa"</code> (simulated annealing), or <code>"ga"</code> (genetic algorithm).</p></dd>
 
 
 <dt id="arg-objective">objective<a class="anchor" aria-label="anchor" href="#arg-objective"></a></dt>
@@ -212,15 +213,16 @@ range, sill.</p></dd>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">air</span><span class="op">)</span></span></span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>data set ‘air’ not found</span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/edzer/spacetime" class="external-link">spacetime</a></span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/r-spatial/gstat/" class="external-link">gstat</a></span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">air</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">deair</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/spacetime/man/STFDF-class.html" class="external-link">STFDF</a></span><span class="op">(</span><span class="va">stations</span>, <span class="va">dates</span>, <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>PM10 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="va">air</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in STFDF(stations, dates, data.frame(PM10 = as.vector(air))):</span> could not find function "STFDF"</span>
 <span class="r-in"><span><span class="va">deair_rs</span> <span class="op">&lt;-</span> <span class="va">deair</span><span class="op">[</span>, <span class="fl">3751</span><span class="op">:</span><span class="fl">3800</span><span class="op">]</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'deair' not found</span>
 <span class="r-in"><span><span class="co">## Not run:</span></span></span>
-<span class="r-in"><span><span class="co"># akst &lt;- autoKrigeST(formula = PM10 ~ 1, input_data = deair_rs,</span></span></span>
-<span class="r-in"><span><span class="co">#                     cutoff = 300000, width = 30000, tlags = 0:7, cores = 4)</span></span></span>
+<span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
+<span class="r-in"><span><span class="va">akst</span> <span class="op">&lt;-</span> <span class="fu">autoKrigeST</span><span class="op">(</span>formula <span class="op">=</span> <span class="va">PM10</span> <span class="op">~</span> <span class="fl">1</span>, input_data <span class="op">=</span> <span class="va">deair_rs</span>,</span></span>
+<span class="r-in"><span>                    cutoff <span class="op">=</span> <span class="fl">300000</span>, width <span class="op">=</span> <span class="fl">30000</span>, tlags <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">7</span>, cores <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

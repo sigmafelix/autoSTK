@@ -11,7 +11,7 @@ functions (v2.0+)."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">autoSTK</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.1.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -61,7 +61,7 @@ functions (v2.0+).</p>
 <span>  measurement_error <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span><span class="op">)</span>,</span>
 <span>  cores <span class="op">=</span> <span class="fl">1L</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  optimizer <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"lbfgsb"</span>, <span class="st">"grid"</span><span class="op">)</span>,</span>
+<span>  optimizer <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"lbfgsb"</span>, <span class="st">"grid"</span>, <span class="st">"sa"</span>, <span class="st">"ga"</span><span class="op">)</span>,</span>
 <span>  objective <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"WLS"</span>, <span class="st">"MLE"</span><span class="op">)</span>,</span>
 <span>  n_restart <span class="op">=</span> <span class="fl">1L</span>,</span>
 <span>  optimizer_control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span></span>
@@ -141,8 +141,11 @@ variogram model families (e.g. <code>c("Ste", "Exc", "Exp", "Wav")</code>).</p><
 
 
 <dt id="arg-optimizer">optimizer<a class="anchor" aria-label="anchor" href="#arg-optimizer"></a></dt>
-<dd><p>Character. Optimisation strategy: <code>"lbfgsb"</code> (default,
-current behaviour) or <code>"grid"</code> (LHS grid search + L-BFGS-B).</p></dd>
+<dd><p>Character. Optimisation strategy:
+<code>"lbfgsb"</code> (default — multi-start L-BFGS-B),
+<code>"grid"</code> (LHS grid search + L-BFGS-B refinement),
+<code>"sa"</code> (simulated annealing via <code>optim(method = "SANN")</code>), or
+<code>"ga"</code> (genetic algorithm via the <span class="pkg">GA</span> package).</p></dd>
 
 
 <dt id="arg-objective">objective<a class="anchor" aria-label="anchor" href="#arg-objective"></a></dt>
@@ -158,7 +161,24 @@ n &lt; 500).</p></dd>
 
 <dt id="arg-optimizer-control">optimizer_control<a class="anchor" aria-label="anchor" href="#arg-optimizer-control"></a></dt>
 <dd><p>Named list of extra arguments forwarded to the
-optimiser (e.g. <code>list(n_coarse = 100L)</code> for <code>"grid"</code>).</p></dd>
+optimiser.  Recognised keys differ by optimiser:</p><dl><dt><code>"lbfgsb"</code></dt>
+<dd><p><code>maxit</code> (default 2500).</p></dd>
+
+  <dt><code>"grid"</code></dt>
+<dd><p><code>n_coarse</code> (default 50), <code>n_refine</code> (default 30),
+    <code>maxit</code> (default 2500).</p></dd>
+
+  <dt><code>"sa"</code></dt>
+<dd><p><code>maxit</code> (default 5000), <code>temp</code> (initial temperature,
+    default 10), <code>tmax</code> (steps before cooling, default 10).</p></dd>
+
+  <dt><code>"ga"</code></dt>
+<dd><p><code>popSize</code> (default 50), <code>maxiter</code> (default 200),
+    <code>run</code> (early-stopping generations without improvement,
+    default 30), <code>seed</code> (default 42).</p></dd>
+
+
+</dl></dd>
 
 </dl></div>
     <div class="section level2">

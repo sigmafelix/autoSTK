@@ -11,12 +11,12 @@ Source:
 [`DESCRIPTION`](https://github.com/sigmafelix/autoSTK/blob/master/DESCRIPTION)
 
 Song I (2026). *autoSTK: Automatic Spatio-Temporal Kriging*. R package
-version 2.0.0, <https://github.com/sigmafelix/autoSTK>.
+version 2.1.1, <https://github.com/sigmafelix/autoSTK>.
 
     @Manual{,
       title = {autoSTK: Automatic Spatio-Temporal Kriging},
       author = {Insang Song},
       year = {2026},
-      note = {R package version 2.0.0},
+      note = {R package version 2.1.1},
       url = {https://github.com/sigmafelix/autoSTK},
     }

@@ -153,7 +153,8 @@ autoKrigeST(
 
 - optimizer:
 
-  Character. `"lbfgsb"` or `"grid"`.
+  Character. One of `"lbfgsb"` (default), `"grid"`, `"sa"` (simulated
+  annealing), or `"ga"` (genetic algorithm).
 
 - objective:
 
@@ -174,13 +175,14 @@ An `autoKrigeST` object.
 ## Examples
 
 ``` r
+library(spacetime)
+library(gstat)
 data(air)
-#> Warning: data set ‘air’ not found
 deair <- STFDF(stations, dates, data.frame(PM10 = as.vector(air)))
-#> Error in STFDF(stations, dates, data.frame(PM10 = as.vector(air))): could not find function "STFDF"
 deair_rs <- deair[, 3751:3800]
-#> Error: object 'deair' not found
 ## Not run:
-# akst <- autoKrigeST(formula = PM10 ~ 1, input_data = deair_rs,
-#                     cutoff = 300000, width = 30000, tlags = 0:7, cores = 4)
+if (FALSE) { # \dontrun{
+akst <- autoKrigeST(formula = PM10 ~ 1, input_data = deair_rs,
+                    cutoff = 300000, width = 30000, tlags = 0:7, cores = 4)
+} # }
 ```

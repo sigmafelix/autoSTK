@@ -24,7 +24,7 @@ autofitVariogramST(
   measurement_error = c(0, 0, 0),
   cores = 1L,
   verbose = FALSE,
-  optimizer = c("lbfgsb", "grid"),
+  optimizer = c("lbfgsb", "grid", "sa", "ga"),
   objective = c("WLS", "MLE"),
   n_restart = 1L,
   optimizer_control = list()
@@ -103,8 +103,10 @@ autofitVariogramST(
 
 - optimizer:
 
-  Character. Optimisation strategy: `"lbfgsb"` (default, current
-  behaviour) or `"grid"` (LHS grid search + L-BFGS-B).
+  Character. Optimisation strategy: `"lbfgsb"` (default — multi-start
+  L-BFGS-B), `"grid"` (LHS grid search + L-BFGS-B refinement), `"sa"`
+  (simulated annealing via `optim(method = "SANN")`), or `"ga"` (genetic
+  algorithm via the GA package).
 
 - objective:
 
@@ -118,8 +120,28 @@ autofitVariogramST(
 
 - optimizer_control:
 
-  Named list of extra arguments forwarded to the optimiser (e.g.
-  `list(n_coarse = 100L)` for `"grid"`).
+  Named list of extra arguments forwarded to the optimiser. Recognised
+  keys differ by optimiser:
+
+  `"lbfgsb"`
+
+  :   `maxit` (default 2500).
+
+  `"grid"`
+
+  :   `n_coarse` (default 50), `n_refine` (default 30), `maxit` (default
+      2500).
+
+  `"sa"`
+
+  :   `maxit` (default 5000), `temp` (initial temperature, default 10),
+      `tmax` (steps before cooling, default 10).
+
+  `"ga"`
+
+  :   `popSize` (default 50), `maxiter` (default 200), `run`
+      (early-stopping generations without improvement, default 30),
+      `seed` (default 42).
 
 ## Value
 

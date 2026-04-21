@@ -16,12 +16,16 @@
 - [`create_new_data.ST.legacy()`](https://sigmafelix.github.io/autoSTK/reference/create_new_data.ST.legacy.md)
   : Generate a new spatiotemporal points for the spatiotemporal
   prediction and interpolation (legacy sp)
+- [`cubble_to_sftime()`](https://sigmafelix.github.io/autoSTK/reference/cubble_to_sftime.md)
+  : Convert a cubble object to an sftime object
 - [`detect_temporal_unit()`](https://sigmafelix.github.io/autoSTK/reference/detect_temporal_unit.md)
   : Autodetect the temporal unit
 - [`detect_temporal_unit.generic()`](https://sigmafelix.github.io/autoSTK/reference/detect_temporal_unit.generic.md)
   : Autodetect the temporal unit in a lubridate/POSIXct object
 - [`detect_temporal_unit.xts()`](https://sigmafelix.github.io/autoSTK/reference/detect_temporal_unit.xts.md)
   : Autodetect the temporal unit in a xts object
+- [`estimate_initial_params()`](https://sigmafelix.github.io/autoSTK/reference/estimate_initial_params.md)
+  : Estimate Initial ST Variogram Parameters from Empirical Data
 - [`fitVariogramST()`](https://sigmafelix.github.io/autoSTK/reference/fitVariogramST.md)
   : Fit a Spatio-Temporal Variogram
 - [`ic_stv()`](https://sigmafelix.github.io/autoSTK/reference/ic_stv.md)

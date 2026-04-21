@@ -11,8 +11,8 @@
 <script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Automatic Spatio-Temporal Kriging">
-<meta name="description" content="Automatic spatio-temporal Kriging extending the automap package (Hiemstra et al. 2010). Provides automatic variogram model fitting with multiple optimisers (L-BFGS-B with multi-start, LHS grid search), covariance structure selection via AIC/BIC or cross-validation, and spatiotemporal prediction via gstat. Four cross-validation strategies for spatiotemporal data are implemented.">
-<meta property="og:description" content="Automatic spatio-temporal Kriging extending the automap package (Hiemstra et al. 2010). Provides automatic variogram model fitting with multiple optimisers (L-BFGS-B with multi-start, LHS grid search), covariance structure selection via AIC/BIC or cross-validation, and spatiotemporal prediction via gstat. Four cross-validation strategies for spatiotemporal data are implemented.">
+<meta name="description" content="Automatic spatio-temporal Kriging extending the automap package (Hiemstra et al. 2010). Provides automatic variogram model fitting with data-driven initial parameter estimation (practical-range based) and multiple optimisers: L-BFGS-B with multi-start, LHS grid search, Simulated Annealing (SANN), and Genetic Algorithm (via the GA package or built-in Differential Evolution fallback). Covariance structure selection via AIC/BIC or cross-validation, and spatiotemporal prediction via gstat. Input classes sf, sftime, spacetime ST*DF, and cubble are all supported. Four cross-validation strategies for spatiotemporal data are implemented.">
+<meta property="og:description" content="Automatic spatio-temporal Kriging extending the automap package (Hiemstra et al. 2010). Provides automatic variogram model fitting with data-driven initial parameter estimation (practical-range based) and multiple optimisers: L-BFGS-B with multi-start, LHS grid search, Simulated Annealing (SANN), and Genetic Algorithm (via the GA package or built-in Differential Evolution fallback). Covariance structure selection via AIC/BIC or cross-validation, and spatiotemporal prediction via gstat. Input classes sf, sftime, spacetime ST*DF, and cubble are all supported. Four cross-validation strategies for spatiotemporal data are implemented.">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="index.html">autoSTK</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.1.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -49,113 +49,335 @@
 <div class="page-header"><h1 id="autostk">
 <code>autoSTK</code><a class="anchor" aria-label="anchor" href="#autostk"></a>
 </h1></div>
-<ul>
-<li>Description: Automatic spatio-temporal kriging inspired by <code>automap</code> (Hiemstra et al. 2010)</li>
-<li>Inherits most of <code>automap</code> functions, but extensively revised</li>
-<li>Includes spatiotemporal variogram fitting and Kriging analysis</li>
-</ul>
-</div>
-<div class="section level1">
-<h1 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
-</h1>
-<ul>
-<li>
-<code>remotes::install_github('sigmafelix/autoSTK')</code> in R (The <code>remotes</code> package is required)</li>
-<li>Before you install the package, please make it sure you have <code>gstat</code>, <code>spacetime</code>, and <code>automap</code> packages in your machine</li>
-</ul>
-</div>
-<div class="section level1">
-<h1 id="supported-functions">Supported functions<a class="anchor" aria-label="anchor" href="#supported-functions"></a>
-</h1>
-<ul>
-<li>
-<code>autofitVariogramST</code>: automatically fit the spatiotemporal variogram</li>
-<li>
-<code>autoKrigeST</code>: automatically estimate the spatiotemporal variables for specified period ahead (the default value is 6 temporal units)
-<ul>
-<li>Currently support <code>STFDF</code> and <code>STSDF</code> class and ordinary spatiotemporal Kriging (e.g., <code>y~1</code>)</li>
-</ul>
-</li>
-<li>
-<code>autoKrigeST.cv</code>: automatically cross-validate the spatiotemporal data by spatial, temporal, spatiotemporal, and random slicing</li>
-</ul>
-</div>
-<div class="section level1">
-<h1 id="update-plan">Update plan<a class="anchor" aria-label="anchor" href="#update-plan"></a>
-</h1>
-<ul>
-<li>Add support for <code>STIDF</code> class and universal spatiotemporal Kriging: necessitates the <code>gstat</code> function fix for <code>variogramST.STIDF</code>
-</li>
-<li>Transition to <code>sf</code> and <code>sftime</code> in preparation of the retirement of <code>sp</code> in October 2023</li>
-</ul>
-</div>
-<div class="section level1">
-<h1 id="main-features">
-<strong>Main features</strong><a class="anchor" aria-label="anchor" href="#main-features"></a>
-</h1>
-<ul>
-<li>Split data into spatial and temporal dimensions which are compatible to be fitted as components of a spatio-temporal variogram</li>
-<li>Find the optimal theoretical variograms with BFHS algorithm following the <code>autofitVariogram</code> function of <code>automap</code> package; but several changes were applied</li>
-</ul>
-</div>
-<div class="section level1">
-<h1 id="please-note">Please note<a class="anchor" aria-label="anchor" href="#please-note"></a>
-</h1>
-<ul>
-<li>I strongly recommend users to convert <code>STIDF</code> to <code>STSDF</code> before running functions
-<ul>
-<li>When the input is <code>sftime</code>, convert the input into <code>STIDF</code> then into <code>STSDF</code>. It is done automatically in most cases.</li>
-</ul>
-</li>
-</ul>
-</div>
-<div class="section level1">
-<h1 id="working-example">Working example<a class="anchor" aria-label="anchor" href="#working-example"></a>
-</h1>
-<ul>
-<li>Please consult the help page of the main functions <code>autoKrigeST</code> and <code>autoKrigeST.cv</code>.</li>
-</ul>
+<p><code>autoSTK</code> provides automatic spatio-temporal Kriging inspired by <code>automap</code> (Hiemstra et al. 2010). It extends the <code>automap</code> workflow to spatio-temporal variogram fitting, Kriging prediction, and cross-validation for common R spatio-temporal data classes.</p>
+<div class="section level2">
+<h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
+</h2>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"sigmafelix/autoSTK"</span><span class="op">)</span></span></code></pre></div>
+<p>Before installing, make sure the core spatial dependencies are available: <code>gstat</code>, <code>spacetime</code>, <code>sp</code>, <code>sf</code>, <code>sftime</code>, and <code>automap</code>. The <code>cubble</code> package is suggested and is only required when working directly with <code>cubble_df</code> objects.</p>
+</div>
+<div class="section level2">
+<h2 id="main-features">Main Features<a class="anchor" aria-label="anchor" href="#main-features"></a>
+</h2>
+<ul>
+<li>Automatic spatio-temporal variogram fitting with <code><a href="reference/autofitVariogramST.html">autofitVariogramST()</a></code>.</li>
+<li>Automatic spatio-temporal Kriging with <code><a href="reference/autoKrigeST.html">autoKrigeST()</a></code>.</li>
+<li>Explicit fit/predict workflow with <code><a href="reference/fitVariogramST.html">fitVariogramST()</a></code> and <code><a href="reference/predictKrigeST.html">predictKrigeST()</a></code>.</li>
+<li>Cross-validation with <code><a href="reference/autoKrigeST.cv.html">autoKrigeST.cv()</a></code> using spatial, temporal, spatio-temporal, or random folds.</li>
+<li>Support for <code>STFDF</code>, <code>STSDF</code>, <code>STIDF</code>, <code>sftime</code>, and <code>cubble</code> inputs in the main fitting and prediction workflow.</li>
+<li>Conversion helper <code><a href="reference/cubble_to_sftime.html">cubble_to_sftime()</a></code> for nested or temporal <code>cubble</code> objects.</li>
+<li>Multiple spatio-temporal variogram structures, including <code>sumMetric</code>, <code>metric</code>, <code>productSum</code>, and <code>separable</code>.</li>
+<li>Multiple optimizers, including <code>lbfgsb</code>, <code>grid</code>, <code>sa</code>, and <code>ga</code>.</li>
+</ul>
+</div>
+<div class="section level2">
+<h2 id="supported-functions">Supported Functions<a class="anchor" aria-label="anchor" href="#supported-functions"></a>
+</h2>
+<ul>
+<li>
+<code><a href="reference/autofitVariogramST.html">autofitVariogramST()</a></code>: automatically fits a spatio-temporal variogram.</li>
+<li>
+<code><a href="reference/fitVariogramST.html">fitVariogramST()</a></code>: fits a variogram and returns a reusable <code>STVariogramFit</code> object.</li>
+<li>
+<code><a href="reference/predictKrigeST.html">predictKrigeST()</a></code>: predicts from a fitted <code>STVariogramFit</code> object.</li>
+<li>
+<code><a href="reference/autoKrigeST.html">autoKrigeST()</a></code>: fits the variogram and predicts in one call.</li>
+<li>
+<code><a href="reference/autoKrigeST.cv.html">autoKrigeST.cv()</a></code>: cross-validates spatio-temporal Kriging results.</li>
+<li>
+<code><a href="reference/cubble_to_sftime.html">cubble_to_sftime()</a></code>: converts <code>cubble_df</code> objects to <code>sftime</code>.</li>
+</ul>
+</div>
+<div class="section level2">
+<h2 id="data-classes">Data Classes<a class="anchor" aria-label="anchor" href="#data-classes"></a>
+</h2>
+<p>The main Kriging workflow accepts both legacy <code>spacetime</code> classes and modern simple-feature classes:</p>
+<table class="table">
+<colgroup>
+<col width="50%">
+<col width="50%">
+</colgroup>
+<thead><tr class="header">
+<th>Input class</th>
+<th>Typical use</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>STFDF</code></td>
+<td>Full space-time grids, such as all stations observed at all dates.</td>
+</tr>
+<tr class="even">
+<td><code>STSDF</code></td>
+<td>Sparse space-time grids, such as missing station-date observations.</td>
+</tr>
+<tr class="odd">
+<td><code>STIDF</code></td>
+<td>Irregular space-time observations.</td>
+</tr>
+<tr class="even">
+<td><code>sftime</code></td>
+<td>Simple-feature workflows with one geometry and one time column.</td>
+</tr>
+<tr class="odd">
+<td><code>cubble_df</code></td>
+<td>Tidy spatio-temporal data stored in spatial and temporal faces.</td>
+</tr>
+</tbody>
+</table>
+<p>Internally, <code>autoSTK</code> converts modern inputs to the <code>spacetime</code> classes required by <code><a href="https://r-spatial.github.io/gstat/reference/variogramST.html" class="external-link">gstat::variogramST()</a></code> and <code><a href="https://r-spatial.github.io/gstat/reference/krigeST.html" class="external-link">gstat::krigeST()</a></code>.</p>
+</div>
+<div class="section level2">
+<h2 id="use-cases">Use Cases<a class="anchor" aria-label="anchor" href="#use-cases"></a>
+</h2>
+<div class="section level3">
+<h3 id="forecast-air-quality-from-station-networks">Forecast Air Quality From Station Networks<a class="anchor" aria-label="anchor" href="#forecast-air-quality-from-station-networks"></a>
+</h3>
+<p>Use <code><a href="reference/autoKrigeST.html">autoKrigeST()</a></code> when you have repeated measurements at monitoring stations and want predictions on a future spatio-temporal grid. This is the classic <code>STFDF</code>/<code>STSDF</code> workflow.</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/sigmafelix/autoSTK" class="external-link">autoSTK</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/r-spatial/gstat/" class="external-link">gstat</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/edzer/sp/" class="external-link">sp</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/edzer/spacetime" class="external-link">spacetime</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://r-spatial.github.io/stars/" class="external-link">stars</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/edzer/sp/" class="external-link">sp</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">air</span><span class="op">)</span></span>
-<span><span class="va">deair</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/spacetime/man/STFDF-class.html" class="external-link">STFDF</a></span><span class="op">(</span><span class="va">stations</span>, <span class="va">dates</span>, <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>PM10 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="va">air</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">deair_sf</span> <span class="op">=</span> <span class="fu"><a href="https://r-spatial.github.io/stars/reference/st_as_stars.html" class="external-link">st_as_stars</a></span><span class="op">(</span><span class="va">deair</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>    <span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_transform.html" class="external-link">st_transform</a></span><span class="op">(</span><span class="st">'+proj=longlat +ellps=sphere'</span><span class="op">)</span></span>
-<span><span class="va">deair_sf</span> <span class="op">=</span> <span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_transform.html" class="external-link">st_transform</a></span><span class="op">(</span><span class="va">deair_sf</span>, <span class="fl">3857</span><span class="op">)</span></span>
-<span><span class="va">deair_r</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/methods/as.html" class="external-link">as</a></span><span class="op">(</span><span class="va">deair_sf</span>, <span class="st">'STFDF'</span><span class="op">)</span></span>
-<span><span class="va">deair_r</span><span class="op">@</span><span class="va">sp</span><span class="op">@</span><span class="va">proj4string</span> <span class="op">=</span> <span class="fu"><a href="https://edzer.github.io/sp/reference/CRS-class.html" class="external-link">CRS</a></span><span class="op">(</span><span class="st">'+proj=merc +a=6378137 +b=6378137 +lat_ts=0 +lon_0=0 +x_0=0 +y_0=0 +k=1 +units=m +nadgrids=@null +wktext +no_defs +type=crs'</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">deair_rs</span> <span class="op">=</span> <span class="va">deair_r</span><span class="op">[</span>,<span class="fl">3701</span><span class="op">:</span><span class="fl">3800</span><span class="op">]</span></span>
-<span><span class="va">deair_rss</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/methods/as.html" class="external-link">as</a></span><span class="op">(</span><span class="va">deair_rs</span>, <span class="st">'STSDF'</span><span class="op">)</span></span>
+<span><span class="va">deair</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/spacetime/man/STFDF-class.html" class="external-link">STFDF</a></span><span class="op">(</span><span class="va">stations</span>, <span class="va">dates</span>, <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>PM10 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="va">air</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">deair_sf</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/stars/reference/st_as_stars.html" class="external-link">st_as_stars</a></span><span class="op">(</span><span class="va">deair</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_transform.html" class="external-link">st_transform</a></span><span class="op">(</span><span class="st">"+proj=longlat +ellps=sphere"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_transform.html" class="external-link">st_transform</a></span><span class="op">(</span><span class="fl">3857</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co">## autoKrigeST</span></span>
-<span><span class="va">akst_stk</span> <span class="op">=</span> <span class="fu"><a href="reference/autoKrigeST.html">autoKrigeST</a></span><span class="op">(</span>formula <span class="op">=</span> <span class="va">PM10</span><span class="op">~</span><span class="fl">1</span>, </span>
-<span>                       input_data <span class="op">=</span> <span class="va">deair_rss</span>, </span>
-<span>                       cutoff <span class="op">=</span> <span class="fl">300000</span>, width <span class="op">=</span> <span class="fl">30000</span>,</span>
-<span>                       type_stv <span class="op">=</span> <span class="st">"sumMetric"</span>,</span>
-<span>                       model <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Exc"</span>, <span class="st">"Mat"</span>, <span class="st">"Ste"</span>, <span class="st">"Exp"</span>, <span class="st">"Wav"</span><span class="op">)</span>,</span>
-<span>                       tlags <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">7</span>, cores <span class="op">=</span> <span class="fl">8</span>,</span>
-<span>                       verbose <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="va">deair_r</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/methods/as.html" class="external-link">as</a></span><span class="op">(</span><span class="va">deair_sf</span>, <span class="st">"STFDF"</span><span class="op">)</span></span>
+<span><span class="va">deair_r</span><span class="op">@</span><span class="va">sp</span><span class="op">@</span><span class="va">proj4string</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://edzer.github.io/sp/reference/CRS-class.html" class="external-link">CRS</a></span><span class="op">(</span></span>
+<span>  <span class="st">"+proj=merc +a=6378137 +b=6378137 +lat_ts=0 +lon_0=0 +x_0=0 +y_0=0 +k=1 +units=m +nadgrids=@null +wktext +no_defs +type=crs"</span></span>
+<span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">akst_stk_stars</span> <span class="op">=</span> <span class="fu"><a href="https://r-spatial.github.io/stars/reference/st_as_stars.html" class="external-link">st_as_stars</a></span><span class="op">(</span><span class="va">akst_stk</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">akst_stk_stars</span><span class="op">[</span><span class="fl">1</span>,<span class="op">]</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">deair_rs</span> <span class="op">&lt;-</span> <span class="va">deair_r</span><span class="op">[</span>, <span class="fl">3701</span><span class="op">:</span><span class="fl">3800</span><span class="op">]</span></span>
+<span><span class="va">deair_rss</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/methods/as.html" class="external-link">as</a></span><span class="op">(</span><span class="va">deair_rs</span>, <span class="st">"STSDF"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">akst_stk</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/autoKrigeST.html">autoKrigeST</a></span><span class="op">(</span></span>
+<span>  formula <span class="op">=</span> <span class="va">PM10</span> <span class="op">~</span> <span class="fl">1</span>,</span>
+<span>  input_data <span class="op">=</span> <span class="va">deair_rss</span>,</span>
+<span>  cutoff <span class="op">=</span> <span class="fl">300000</span>,</span>
+<span>  width <span class="op">=</span> <span class="fl">30000</span>,</span>
+<span>  type_stv <span class="op">=</span> <span class="st">"sumMetric"</span>,</span>
+<span>  model <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Exc"</span>, <span class="st">"Mat"</span>, <span class="st">"Ste"</span>, <span class="st">"Exp"</span>, <span class="st">"Wav"</span><span class="op">)</span>,</span>
+<span>  tlags <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">7</span>,</span>
+<span>  cores <span class="op">=</span> <span class="fl">8</span>,</span>
+<span>  optimizer <span class="op">=</span> <span class="st">"sa"</span>,</span>
+<span>  verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">akst_stk_stars</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/stars/reference/st_as_stars.html" class="external-link">st_as_stars</a></span><span class="op">(</span><span class="va">akst_stk</span><span class="op">$</span><span class="va">krige_output</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">akst_stk_stars</span><span class="op">[</span><span class="fl">1</span>, <span class="op">]</span><span class="op">)</span></span></code></pre></div>
 <p><img src="https://i.imgur.com/xDadzlJ.png"></p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="co">## autoKrigeST.cv</span></span>
-<span><span class="va">akst_cv_t</span> <span class="op">=</span> <span class="fu"><a href="reference/autoKrigeST.cv.html">autoKrigeST.cv</a></span><span class="op">(</span>formula <span class="op">=</span> <span class="va">PM10</span><span class="op">~</span><span class="fl">1</span>, data <span class="op">=</span> <span class="va">deair_rs</span>,  nfold <span class="op">=</span> <span class="fl">3</span>, fold_dim <span class="op">=</span> <span class="st">'temporal'</span>, </span>
-<span>                         cutoff <span class="op">=</span> <span class="fl">300000</span>, width <span class="op">=</span> <span class="fl">30000</span>, tlags <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">7</span>, cores <span class="op">=</span> <span class="fl">8</span><span class="op">)</span></span>
-<span><span class="va">akst_cv_s</span> <span class="op">=</span> <span class="fu"><a href="reference/autoKrigeST.cv.html">autoKrigeST.cv</a></span><span class="op">(</span>formula <span class="op">=</span> <span class="va">PM10</span><span class="op">~</span><span class="fl">1</span>, data <span class="op">=</span> <span class="va">deair_rs</span>,  nfold <span class="op">=</span> <span class="fl">3</span>, fold_dim <span class="op">=</span> <span class="st">'spatial'</span>, </span>
-<span>                         cutoff <span class="op">=</span> <span class="fl">300000</span>, width <span class="op">=</span> <span class="fl">30000</span>, tlags <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">7</span>, cores <span class="op">=</span> <span class="fl">8</span><span class="op">)</span></span>
-<span><span class="va">akst_cv_spt</span> <span class="op">=</span> <span class="fu"><a href="reference/autoKrigeST.cv.html">autoKrigeST.cv</a></span><span class="op">(</span>formula <span class="op">=</span> <span class="va">PM10</span><span class="op">~</span><span class="fl">1</span>, data <span class="op">=</span> <span class="va">deair_rs</span>,  nfold <span class="op">=</span> <span class="fl">4</span>, fold_dim <span class="op">=</span> <span class="st">'spacetime'</span>, </span>
-<span>                         cutoff <span class="op">=</span> <span class="fl">300000</span>, width <span class="op">=</span> <span class="fl">30000</span>, tlags <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">7</span>, cores <span class="op">=</span> <span class="fl">8</span><span class="op">)</span></span></code></pre></div>
 </div>
-
+<div class="section level3">
+<h3 id="work-directly-with-sftime">Work Directly With <code>sftime</code>
+<a class="anchor" aria-label="anchor" href="#work-directly-with-sftime"></a>
+</h3>
+<p>Use <code>sftime</code> when your data already lives in an <code>sf</code>-style workflow with one geometry column and one time column. <code><a href="reference/autoKrigeST.html">autoKrigeST()</a></code> accepts <code>sftime</code> for both training data and prediction data.</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/sigmafelix/autoSTK" class="external-link">autoSTK</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://r-spatial.github.io/sf/" class="external-link">sf</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://r-spatial.github.io/sftime/" class="external-link">sftime</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># station_long has columns:</span></span>
+<span><span class="co">#   id, time, PM10, geometry</span></span>
+<span><span class="co"># where geometry is an sfc_POINT column and time is Date/POSIXct.</span></span>
+<span><span class="va">station_sf</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_as_sf.html" class="external-link">st_as_sf</a></span><span class="op">(</span></span>
+<span>  <span class="va">station_long</span>,</span>
+<span>  sf_column_name <span class="op">=</span> <span class="st">"geometry"</span>,</span>
+<span>  crs <span class="op">=</span> <span class="fl">3857</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">station_st</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/sftime/reference/st_as_sftime.html" class="external-link">st_as_sftime</a></span><span class="op">(</span></span>
+<span>  <span class="va">station_sf</span>,</span>
+<span>  time_column_name <span class="op">=</span> <span class="st">"time"</span>,</span>
+<span>  sf_column_name <span class="op">=</span> <span class="st">"geometry"</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/fitVariogramST.html">fitVariogramST</a></span><span class="op">(</span></span>
+<span>  formula <span class="op">=</span> <span class="va">PM10</span> <span class="op">~</span> <span class="fl">1</span>,</span>
+<span>  data <span class="op">=</span> <span class="va">station_st</span>,</span>
+<span>  typestv <span class="op">=</span> <span class="st">"sumMetric"</span>,</span>
+<span>  candidate_model <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Sph"</span>, <span class="st">"Exp"</span>, <span class="st">"Gau"</span>, <span class="st">"Ste"</span><span class="op">)</span>,</span>
+<span>  cutoff <span class="op">=</span> <span class="fl">300000</span>,</span>
+<span>  width <span class="op">=</span> <span class="fl">30000</span>,</span>
+<span>  tlags <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">7</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">pred</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/predictKrigeST.html">predictKrigeST</a></span><span class="op">(</span></span>
+<span>  fit <span class="op">=</span> <span class="va">fit</span>,</span>
+<span>  data <span class="op">=</span> <span class="va">station_st</span>,</span>
+<span>  newdata <span class="op">=</span> <span class="va">prediction_grid_st</span>,</span>
+<span>  formula <span class="op">=</span> <span class="va">PM10</span> <span class="op">~</span> <span class="fl">1</span>,</span>
+<span>  nmax <span class="op">=</span> <span class="fl">40</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p><code><a href="reference/fitVariogramST.html">fitVariogramST()</a></code> and <code><a href="reference/predictKrigeST.html">predictKrigeST()</a></code> are useful when you want to reuse the same fitted variogram across several prediction grids.</p>
+</div>
+<div class="section level3">
+<h3 id="use-cubble-data">Use <code>cubble</code> Data<a class="anchor" aria-label="anchor" href="#use-cubble-data"></a>
+</h3>
+<p>Use <code>cubble</code> when your workflow stores station metadata in the spatial face and repeated measurements in the temporal face. <code>autoSTK</code> can convert either the nested or temporal face to <code>sftime</code>.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/sigmafelix/autoSTK" class="external-link">autoSTK</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/huizezhang-sherry/cubble" class="external-link">cubble</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># cb is a cubble_df created from an sf object with station geometries and a</span></span>
+<span><span class="co"># temporal table containing PM10 observations.</span></span>
+<span><span class="va">pm10_st</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/cubble_to_sftime.html">cubble_to_sftime</a></span><span class="op">(</span><span class="va">cb</span>, time_col <span class="op">=</span> <span class="st">"time"</span>, key_col <span class="op">=</span> <span class="st">"id"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">akst_cb</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/autoKrigeST.html">autoKrigeST</a></span><span class="op">(</span></span>
+<span>  formula <span class="op">=</span> <span class="va">PM10</span> <span class="op">~</span> <span class="fl">1</span>,</span>
+<span>  input_data <span class="op">=</span> <span class="va">pm10_st</span>,</span>
+<span>  cutoff <span class="op">=</span> <span class="fl">300000</span>,</span>
+<span>  width <span class="op">=</span> <span class="fl">30000</span>,</span>
+<span>  tlags <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">7</span>,</span>
+<span>  type_stv <span class="op">=</span> <span class="st">"sumMetric"</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p>You can also pass a <code>cubble_df</code> directly to the main Kriging workflow when supplying a prediction grid:</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">akst_cb</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/autoKrigeST.html">autoKrigeST</a></span><span class="op">(</span></span>
+<span>  formula <span class="op">=</span> <span class="va">PM10</span> <span class="op">~</span> <span class="fl">1</span>,</span>
+<span>  input_data <span class="op">=</span> <span class="va">cb</span>,</span>
+<span>  new_data <span class="op">=</span> <span class="va">prediction_grid_st</span>,</span>
+<span>  cutoff <span class="op">=</span> <span class="fl">300000</span>,</span>
+<span>  width <span class="op">=</span> <span class="fl">30000</span>,</span>
+<span>  tlags <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">7</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p>For cross-validation, convert <code>cubble</code> or <code>sftime</code> data to a <code>spacetime</code> object first, because <code><a href="reference/autoKrigeST.cv.html">autoKrigeST.cv()</a></code> builds folds from the <code>@sp</code> and <code>@time</code> slots.</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">pm10_stfdf</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/methods/as.html" class="external-link">as</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/methods/as.html" class="external-link">as</a></span><span class="op">(</span><span class="va">pm10_st</span>, <span class="st">"STIDF"</span><span class="op">)</span>, <span class="st">"STFDF"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">akst_cv_cb</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/autoKrigeST.cv.html">autoKrigeST.cv</a></span><span class="op">(</span></span>
+<span>  formula <span class="op">=</span> <span class="va">PM10</span> <span class="op">~</span> <span class="fl">1</span>,</span>
+<span>  data <span class="op">=</span> <span class="va">pm10_stfdf</span>,</span>
+<span>  nfold <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>  fold_dim <span class="op">=</span> <span class="st">"temporal"</span>,</span>
+<span>  cutoff <span class="op">=</span> <span class="fl">300000</span>,</span>
+<span>  width <span class="op">=</span> <span class="fl">30000</span>,</span>
+<span>  tlags <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">7</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+</div>
+</div>
+<div class="section level2">
+<h2 id="cross-validation">Cross-Validation<a class="anchor" aria-label="anchor" href="#cross-validation"></a>
+</h2>
+<p><code><a href="reference/autoKrigeST.cv.html">autoKrigeST.cv()</a></code> evaluates prediction performance by holding out different parts of the spatio-temporal data set.</p>
+<table class="table">
+<colgroup>
+<col width="33%">
+<col width="33%">
+<col width="33%">
+</colgroup>
+<thead><tr class="header">
+<th><code>fold_dim</code></th>
+<th>What is held out</th>
+<th>Good for</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>"spatial"</code></td>
+<td>Groups of monitoring locations</td>
+<td>Testing transfer to unseen stations.</td>
+</tr>
+<tr class="even">
+<td><code>"temporal"</code></td>
+<td>Groups of dates/times</td>
+<td>Testing forecasting over unseen periods.</td>
+</tr>
+<tr class="odd">
+<td><code>"spacetime"</code></td>
+<td>Blocks of locations and times</td>
+<td>Testing combined spatial and temporal extrapolation.</td>
+</tr>
+<tr class="even">
+<td><code>"random"</code></td>
+<td>Random observations</td>
+<td>Testing interpolation under scattered missingness.</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">akst_cv_t</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/autoKrigeST.cv.html">autoKrigeST.cv</a></span><span class="op">(</span></span>
+<span>  formula <span class="op">=</span> <span class="va">PM10</span> <span class="op">~</span> <span class="fl">1</span>,</span>
+<span>  data <span class="op">=</span> <span class="va">deair_rs</span>,</span>
+<span>  nfold <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>  fold_dim <span class="op">=</span> <span class="st">"temporal"</span>,</span>
+<span>  cutoff <span class="op">=</span> <span class="fl">300000</span>,</span>
+<span>  width <span class="op">=</span> <span class="fl">30000</span>,</span>
+<span>  tlags <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">7</span>,</span>
+<span>  cores <span class="op">=</span> <span class="fl">8</span>,</span>
+<span>  optimizer <span class="op">=</span> <span class="st">"sa"</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">akst_cv_s</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/autoKrigeST.cv.html">autoKrigeST.cv</a></span><span class="op">(</span></span>
+<span>  formula <span class="op">=</span> <span class="va">PM10</span> <span class="op">~</span> <span class="fl">1</span>,</span>
+<span>  data <span class="op">=</span> <span class="va">deair_rs</span>,</span>
+<span>  nfold <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>  fold_dim <span class="op">=</span> <span class="st">"spatial"</span>,</span>
+<span>  cutoff <span class="op">=</span> <span class="fl">300000</span>,</span>
+<span>  width <span class="op">=</span> <span class="fl">30000</span>,</span>
+<span>  tlags <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">7</span>,</span>
+<span>  cores <span class="op">=</span> <span class="fl">8</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">akst_cv_spt</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/autoKrigeST.cv.html">autoKrigeST.cv</a></span><span class="op">(</span></span>
+<span>  formula <span class="op">=</span> <span class="va">PM10</span> <span class="op">~</span> <span class="fl">1</span>,</span>
+<span>  data <span class="op">=</span> <span class="va">deair_rs</span>,</span>
+<span>  nfold <span class="op">=</span> <span class="fl">4</span>,</span>
+<span>  fold_dim <span class="op">=</span> <span class="st">"spacetime"</span>,</span>
+<span>  cutoff <span class="op">=</span> <span class="fl">300000</span>,</span>
+<span>  width <span class="op">=</span> <span class="fl">30000</span>,</span>
+<span>  tlags <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">7</span>,</span>
+<span>  cores <span class="op">=</span> <span class="fl">8</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p>The result is a data frame with one row per fold:</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">akst_cv_t</span></span>
+<span><span class="co">#&gt;   CVFold     RMSE      MAE      BIAS</span></span>
+<span><span class="co">#&gt; 1      1  ...</span></span>
+<span><span class="co">#&gt; 2      2  ...</span></span>
+<span><span class="co">#&gt; 3      3  ...</span></span></code></pre></div>
+<p>The columns are:</p>
+<ul>
+<li>
+<code>CVFold</code>: fold identifier.</li>
+<li>
+<code>RMSE</code>: root mean squared prediction error.</li>
+<li>
+<code>MAE</code>: mean absolute prediction error.</li>
+<li>
+<code>BIAS</code>: mean prediction minus mean observed value.</li>
+</ul>
+<p>Summarise the cross-validation results to compare model settings:</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">summary_cv</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  fold_dim <span class="op">=</span> <span class="st">"temporal"</span>,</span>
+<span>  mean_RMSE <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">akst_cv_t</span><span class="op">$</span><span class="va">RMSE</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
+<span>  mean_MAE <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">akst_cv_t</span><span class="op">$</span><span class="va">MAE</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
+<span>  mean_BIAS <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">akst_cv_t</span><span class="op">$</span><span class="va">BIAS</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">summary_cv</span></span></code></pre></div>
+<p>Lower <code>RMSE</code> and <code>MAE</code> indicate smaller prediction errors. <code>BIAS</code> values close to zero indicate little systematic over- or under-prediction.</p>
+<p>For <code>fold_dim = "spacetime"</code>, <code>nfold</code> must be a perfect square, such as <code>4</code>, <code>9</code>, or <code>16</code>, because the folds are built from spatial groups crossed with temporal groups.</p>
+</div>
+<div class="section level2">
+<h2 id="notes">Notes<a class="anchor" aria-label="anchor" href="#notes"></a>
+</h2>
+<ul>
+<li>Projected coordinate reference systems are recommended because variogram distances are computed in map units.</li>
+<li>Universal Kriging formulas such as <code>PM10 ~ elevation + traffic</code> require <code>new_data</code> with matching covariate columns.</li>
+<li>
+<code>predict_chunk</code> can be used for large prediction grids to reduce memory pressure.</li>
+<li>
+<code>variogram_from_full = TRUE</code> in <code><a href="reference/autoKrigeST.cv.html">autoKrigeST.cv()</a></code> fits one variogram on the full data set and reuses it across folds, which can be much faster when that assumption is appropriate.</li>
+</ul>
+</div>
+</div>
   </main><aside class="col-md-3"><div class="links">
 <h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">
