@@ -39,7 +39,7 @@ setSTI(
 
 \item{plot3d}{Boolean. Wheter you make a three-dimensional graph with rgl package}
 
-\item{logarithm}{Boolean. log-transformation}
+\item{cores}{Integer. Number of threads passed to \code{gstat::variogramST}.}
 }
 \value{
 Depends on the arguments wireframe (if TRUE, list of length 2) and plot3d (if TRUE, list of length 3), a StVariogram object otherwise.

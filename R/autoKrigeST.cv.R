@@ -11,22 +11,27 @@
 #' @param model character vector. Default is c("Sph", "Exp", "Gau", "Ste"), but users can specify the list of theoretical variograms by referring gstat::vgm.
 #' @param kappa numeric vector. Kappa values tested for Matern-family variogram models.
 #' @param fix.values numeric vector. Initial values in order of nugget, range, and sill, respectively.
-#' @param newdata_mode character. One of 'rect' (rectangular grid) and 'chull' (convex hull)
-#' @param newdata_npoints integer. The number of points that will be generated in the range of geometry the user specified (one of rectangle or convex hull)
-#' @param GLS.model a variogram model. The default value is NA. If a variogram model is passed, a Generalized Lease Squares sample variogram will be calculated.
 #' @param tlags integer vector (increasing, preferably to be consecutive). temporal lags.
 #' @param cutoff numeric. The maximum distance at which the sample variogram will be computed.
 #' @param width numeric. The interval at which the variogram cloud will be summarized.
-#' @param predict_chunk integer. The number of data points per chunk in the new data for the large data. It should be meticulously chosen according to the user's machine specification.
 #' @param nmax integer or positive infinite. The maximum number of spatiotemporal neighbors to conduct the local spatiotemporal Kriging.
 #' @param aniso_method character. One of 'vgm', 'linear', 'range', and 'metric'. Please refer to ?gstat::estiStAni.
 #' @param type_joint character. The model form of joint spatiotemporal variogram.
 #' @param prodsum_k numeric. The parameter for the case when 'productSum' is chosen for type_stv.
+#' @param surface logical. If TRUE, also return variogram surface in fitting path.
 #' @param start_vals numeric vector (3). The initial values to optimize the spatiotemporal variogram model.
 #' @param miscFitOptions list. See ?automap::autofitVariogram.
+#' @param measurement_error numeric vector of length 3: spatial, temporal, and joint measurement error terms.
 #' @param cores integer. The number of threads that will be used to compute the sample spatiotemporal variogram.
+#' @param seed integer. Random seed for fold generation.
+#' @param variogram_from_full logical. If TRUE, fit one ST variogram on full data and reuse across folds.
+#' @param optimizer character. Optimization method passed to ST variogram fitting.
+#' @param objective character. Objective for ST variogram fitting ('WLS' or 'MLE').
+#' @param n_restart integer. Number of restarts for optimizer = 'lbfgsb'.
+#' @param optimizer_control list. Extra control options forwarded to the selected optimizer.
 #' @return The cross-validated spatiotemporal Kriging results.
 #' @examples
+#' \donttest{
 #' library(sp)
 #' library(gstat)
 #' library(spacetime)
@@ -54,6 +59,7 @@
 #'   formula = PM10 ~ 1, data = deair_rs, nfold = 4, fold_dim = "spacetime",
 #'   cutoff = 300000, width = 30000, tlags = 0:7, cores = 8
 #' )
+#' }
 #' @export
 autoKrigeST.cv <- function(data,
                            fold_dim = c('spatial', 'temporal', 'random', 'spacetime'),

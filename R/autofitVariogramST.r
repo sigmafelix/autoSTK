@@ -28,7 +28,7 @@
 #' @param cores Integer. Number of cores for \code{variogramST}.
 #' @param verbose Logical. If TRUE, print diagnostic messages.
 #' @param optimizer Character. Optimisation strategy:
-#'   \code{"lbfgsb"} (default — multi-start L-BFGS-B),
+#'   \code{"lbfgsb"} (default - multi-start L-BFGS-B),
 #'   \code{"grid"} (LHS grid search + L-BFGS-B refinement),
 #'   \code{"sa"} (simulated annealing via \code{optim(method = "SANN")}), or
 #'   \code{"ga"} (genetic algorithm via the \pkg{GA} package).
@@ -188,7 +188,7 @@ autofitVariogramST <- function(stf,
 
   if (verbose) {
     message(sprintf(
-      "Initial estimates — nugget: %.4g  psill: %.4g  sp_range: %.4g  ts_range: %.4g",
+      "Initial estimates - nugget: %.4g  psill: %.4g  sp_range: %.4g  ts_range: %.4g",
       guess_nugget, guess_psill, init_est$sp_range, init_est$ts_range
     ))
   }

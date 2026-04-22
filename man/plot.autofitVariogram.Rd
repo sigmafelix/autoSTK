@@ -4,7 +4,7 @@
 \alias{plot.autofitVariogram}
 \title{Plot the automatically fitted variogram}
 \usage{
-plot.autofitVariogram(
+\method{plot}{autofitVariogram}(
   x,
   plotit = TRUE,
   title = "Experimental variogram and fitted variogram model",
@@ -18,7 +18,7 @@ plot.autofitVariogram(
 
 \item{title}{character. the title of the plot.}
 
-\item{`...`}{passed to xyplot}
+\item{...}{passed to xyplot}
 }
 \value{
 A lattice::xyplot object.

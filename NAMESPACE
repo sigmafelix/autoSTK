@@ -40,7 +40,7 @@ import(sftime)
 
 importFrom('dplyr', '%>%')
 importFrom('grDevices', 'chull', 'colorRampPalette', 'dev.new')
-importFrom('stats', 'as.formula', 'kmeans', 'median', 'weighted.mean',
+importFrom('stats', 'AIC', 'BIC', 'as.formula', 'kmeans', 'median', 'weighted.mean',
            'optim', 'runif')
 importFrom('utils', 'modifyList', 'setTxtProgressBar', 'txtProgressBar')
 importFrom('lhs', 'randomLHS')
