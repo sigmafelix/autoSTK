@@ -28,7 +28,7 @@
 #' @param cores Integer. Number of cores for \code{variogramST}.
 #' @param verbose Logical. If TRUE, print diagnostic messages.
 #' @param optimizer Character. Optimisation strategy:
-#'   \code{"lbfgsb"} (default — multi-start L-BFGS-B),
+#'   \code{"lbfgsb"} (default - multi-start L-BFGS-B),
 #'   \code{"grid"} (LHS grid search + L-BFGS-B refinement),
 #'   \code{"sa"} (simulated annealing via \code{optim(method = "SANN")}), or
 #'   \code{"ga"} (genetic algorithm via the \pkg{GA} package).
@@ -83,8 +83,17 @@
 #' rural <- st_as_sftime(rural, sf_column_name = 'geometry')
 #' rr <- rural[match(rural$time, dates[3001:3060], nomatch = FALSE) > 0, ]
 #' rr <- as(as(as(rr, "STIDF"), "STFDF"), "STSDF")
-#' rrstv <- autofitVariogramST(stf = rr, formula = PM10 ~ 1, surface = TRUE)
+#' rrstv <-
+#'   autofitVariogramST(
+#'     stf = rr,
+#'     formula = PM10 ~ 1,
+#'     surface = TRUE,
+#'     cutoff = 2e6,
+#'     width = 2e5,
+#'     tlags = 0:6)
 #' rrstv
+#' @importFrom gstat vgmST variogramSurface
+#' @importFrom stats optim
 #' @export
 autofitVariogramST <- function(stf,
                                formula,
@@ -156,9 +165,9 @@ autofitVariogramST <- function(stf,
   }
 
   # ---- Anisotropy ratio ---------------------------------------------------
-  stv.ani <- estiStAni(
+  stv.ani <- gstat::estiStAni(
     stva,
-    interval    = c(0.2, 2) * median(stva$spacelag),
+    interval    = c(0.2, 2) * stats::median(stva$spacelag),
     method      = aniso_method,
     spatialVgm  = stva.sp.fit$var_model,
     temporalVgm = stva.ts.fit$var_model
@@ -188,7 +197,7 @@ autofitVariogramST <- function(stf,
 
   if (verbose) {
     message(sprintf(
-      "Initial estimates — nugget: %.4g  psill: %.4g  sp_range: %.4g  ts_range: %.4g",
+      "Initial estimates - nugget: %.4g  psill: %.4g  sp_range: %.4g  ts_range: %.4g",
       guess_nugget, guess_psill, init_est$sp_range, init_est$ts_range
     ))
   }
@@ -197,7 +206,7 @@ autofitVariogramST <- function(stf,
   # Joint variogram range: use estimated spatial practical range scaled by
   # the anisotropy ratio so the joint component spans the ST domain.
   joint_range <- sqrt(init_est$sp_range^2 + (stv.ani * init_est$ts_range)^2)
-  stv.jo <- vgm(
+  stv.jo <- gstat::vgm(
     model  = type_joint,
     psill  = guess_psill,
     nugget = guess_nugget,
@@ -207,30 +216,30 @@ autofitVariogramST <- function(stf,
 
   # ---- Initial vgmST model ------------------------------------------------
   variost.mod <- switch(typestv,
-    separable = vgmST(
+    separable = gstat::vgmST(
       stModel = typestv, space = stva.sp.fit$var_model,
       time = stva.ts.fit$var_model, sill = sill, nugget = guess_nugget
     ),
-    productSum = vgmST(
+    productSum = gstat::vgmST(
       stModel = typestv,
       space = stva.sp.fit$var_model, time = stva.ts.fit$var_model,
       k = prodsum_k
     ),
-    productSumOld = vgmST(
+    productSumOld = gstat::vgmST(
       stModel = typestv,
       space = stva.sp.fit$var_model, time = stva.ts.fit$var_model,
       sill = guess_psill * sqrt(2), nugget = guess_nugget
     ),
-    sumMetric = vgmST(
+    sumMetric = gstat::vgmST(
       stModel = typestv, space = stva.sp.fit$var_model,
       time = stva.ts.fit$var_model, joint = stv.jo, stAni = stv.ani
     ),
-    simpleSumMetric = vgmST(
+    simpleSumMetric = gstat::vgmST(
       stModel = typestv,
       space = stva.sp.fit$var_model, time = stva.ts.fit$var_model,
       joint = stv.jo, nugget = guess_nugget, stAni = stv.ani
     ),
-    metric = vgmST(stModel = typestv, joint = stv.jo, stAni = stv.ani),
+    metric = gstat::vgmST(stModel = typestv, joint = stv.jo, stAni = stv.ani),
     stop(paste("model", typestv, "unknown"))
   )
 
@@ -244,7 +253,7 @@ autofitVariogramST <- function(stf,
   bounds$upper[bounds$upper < 0] <- 1e2
 
   # ---- Optimise -----------------------------------------------------------
-  ctrl <- modifyList(
+  ctrl <- utils::modifyList(
     list(
       # lbfgsb / grid
       n_coarse = 50L, n_refine = 30L, maxit = 2500L,
@@ -304,7 +313,7 @@ autofitVariogramST <- function(stf,
 
   # ---- Assemble output ----------------------------------------------------
   if (surface) {
-    STVS <- variogramSurface(stva.joint, stva[, c("timelag", "spacelag")])
+    STVS <- gstat::variogramSurface(stva.joint, stva[, c("timelag", "spacelag")])
   }
 
   result <- list(

@@ -65,7 +65,7 @@ variogram model families (e.g. \code{c("Ste", "Exc", "Exp", "Wav")}).}
 \item{verbose}{Logical. If TRUE, print diagnostic messages.}
 
 \item{optimizer}{Character. Optimisation strategy:
-\code{"lbfgsb"} (default — multi-start L-BFGS-B),
+\code{"lbfgsb"} (default - multi-start L-BFGS-B),
 \code{"grid"} (LHS grid search + L-BFGS-B refinement),
 \code{"sa"} (simulated annealing via \code{optim(method = "SANN")}), or
 \code{"ga"} (genetic algorithm via the \pkg{GA} package).}
@@ -127,7 +127,14 @@ rural <- cbind(airdf, time = dates_full, stations_full)
 rural <- st_as_sftime(rural, sf_column_name = 'geometry')
 rr <- rural[match(rural$time, dates[3001:3060], nomatch = FALSE) > 0, ]
 rr <- as(as(as(rr, "STIDF"), "STFDF"), "STSDF")
-rrstv <- autofitVariogramST(stf = rr, formula = PM10 ~ 1, surface = TRUE)
+rrstv <-
+  autofitVariogramST(
+    stf = rr,
+    formula = PM10 ~ 1,
+    surface = TRUE,
+    cutoff = 2e6,
+    width = 2e5,
+    tlags = 0:6)
 rrstv
 }
 \seealso{

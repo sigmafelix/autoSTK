@@ -11,13 +11,13 @@
 # calling optim (fast, for grid evaluation).
 .wls_at_par <- function(par, model_template, stva_emp) {
   mod <- tryCatch(
-    gstat:::updateVgmST(model_template, par),
+    rlang::inject(gstat::vgmST(!!!par)),
     error = function(e) NULL
   )
   if (is.null(mod)) return(Inf)
 
   pred_gamma <- tryCatch(
-    variogramSurface(mod, stva_emp[, c("timelag", "spacelag")])$gamma,
+    gstat::variogramSurface(mod, stva_emp[, c("timelag", "spacelag")])$gamma,
     error = function(e) rep(NA_real_, nrow(stva_emp))
   )
 
@@ -88,12 +88,12 @@
 
   # ---- Phase 3: L-BFGS-B from best grid point ----------------------------
   mod_start <- tryCatch(
-    gstat:::updateVgmST(model_template, best_par),
+    rlang::inject(gstat::vgmST(!!!best_par)),
     error = function(e) model_template
   )
 
   mod_fit <- tryCatch(
-    fit.StVariogram(
+    gstat::fit.StVariogram(
       object  = stva_emp,
       model   = mod_start,
       method  = "L-BFGS-B",

@@ -8,7 +8,7 @@ autoKrige <- function(formula, input_data, new_data, data_variogram = input_data
   # Is someone just passes a spatialpointsdataframe, assume he/she wants to interpolate the first column with Ordinary Kriging
     {
       input_data <- formula
-      formula <- as.formula(paste(names(input_data)[1], "~ 1"))
+      formula <- stats::as.formula(paste(names(input_data)[1], "~ 1"))
     }
 
   # Check if inpu_data and data_variogram are SpatialPointsDataFrame
@@ -27,7 +27,7 @@ autoKrige <- function(formula, input_data, new_data, data_variogram = input_data
   # Check if there are points or gridcells on the exact same coordinate and provide a more informative error message.
   # Points on the same spot causes the interpolation to crash.
   if (remove_duplicates) {
-    zd <- zerodist(input_data)
+    zd <- sp::zerodist(input_data)
     if (length(zd) != 0) {
       warning("Removed ", length(zd) / 2, " duplicate observation(s) in input_data:", immediate. = TRUE)
       print(input_data[c(zd), ])
@@ -42,19 +42,19 @@ autoKrige <- function(formula, input_data, new_data, data_variogram = input_data
   if (missing(new_data)) new_data <- create_new_data(input_data)
 
   ## Perform some checks on the projection systems of input_data and new_data
-  p4s_obj1 <- proj4string(input_data)
-  p4s_obj2 <- proj4string(new_data)
+  p4s_obj1 <- sp::proj4string(input_data)
+  p4s_obj2 <- sp::proj4string(new_data)
   if (!all(is.na(c(p4s_obj1, p4s_obj2)))) {
-    if (is.na(p4s_obj1) & !is.na(p4s_obj2)) proj4string(input_data) <- proj4string(new_data)
-    if (!is.na(p4s_obj1) & is.na(p4s_obj2)) proj4string(new_data) <- proj4string(input_data)
-    if (any(!c(is.projected(input_data), is.projected(new_data)))) {
+    if (is.na(p4s_obj1) & !is.na(p4s_obj2)) sp::proj4string(input_data) <- sp::proj4string(new_data)
+    if (!is.na(p4s_obj1) & is.na(p4s_obj2)) sp::proj4string(new_data) <- sp::proj4string(input_data)
+    if (any(!c(sp::is.projected(input_data), sp::is.projected(new_data)))) {
       stop(paste(
         "Either input_data or new_data is in LongLat, please reproject.\n",
         "  input_data: ", p4s_obj1, "\n",
         "  new_data:   ", p4s_obj2, "\n"
       ))
     }
-    if (proj4string(input_data) != proj4string(new_data)) {
+    if (sp::proj4string(input_data) != sp::proj4string(new_data)) {
       stop(paste(
         "Projections of input_data and new_data do not match:\n",
         "  input_data: ", p4s_obj1, "\n",
@@ -77,7 +77,7 @@ autoKrige <- function(formula, input_data, new_data, data_variogram = input_data
   )
 
   ## Perform the interpolation
-  krige_result <- krige(formula,
+  krige_result <- gstat::krige(formula,
     input_data,
     new_data,
     variogram_object$var_model,

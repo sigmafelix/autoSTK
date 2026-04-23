@@ -5,6 +5,8 @@
 #' @param npoints integer. the number of points that will be generated
 #' @param return_class character(1). One of 'sf' and 'sp'
 #' @return A sf (return_class == 'sf') or SpatialPointsDataFrame (return_class == 'sp').
+#' @importFrom sf st_as_sf st_as_sfc st_bbox st_convex_hull st_sample
+#' @importFrom sftime st_as_sftime
 #' @export
 create_new_data <- function(obj, gen_mode = "chull", npoints = 1e4, return_class = "sf") {
   # Function that creates a new_data object if one is missing
@@ -15,24 +17,24 @@ create_new_data <- function(obj, gen_mode = "chull", npoints = 1e4, return_class
     if (inherits(infeat, "sf")) {
       return(infeat)
     } else {
-      st_as_sftime(infeat)
+      sftime::st_as_sftime(infeat)
       # as(infeat, "Spatial")
     }
   }
   # obj <- distinguishsf(obj)
 
   if (gen_mode == "rect") {
-    obj.b <- st_as_sf(obj)
-    genextent <- st_as_sfc(st_bbox(obj.b))
+    obj.b <- sf::st_as_sf(obj)
+    genextent <- sf::st_as_sfc(sf::st_bbox(obj.b))
     # d <- as(obj.rect, 'Spatial')
   } else {
-    genextent <- st_convex_hull(obj)
+    genextent <- sf::st_convex_hull(obj)
     #   convex_hull = chull(coordinates(obj)[,1],coordinates(obj)[,2])
     #   convex_hull = c(convex_hull, convex_hull[1]) # Close the polygon
     #   d = Polygon(coordinates(obj)[convex_hull, ])
     # d = convex_hull
   }
-  new_data <- st_sample(genextent, npoints, type = "regular")
+  new_data <- sf::st_sample(genextent, npoints, type = "regular")
   # gridded(new_data) = TRUE
   if (return_class == "sp") {
     new_data <- as(new_data, "Spatial")
@@ -120,20 +122,20 @@ create_new_data.ST.legacy <- function(obj, form, gen_mode = "chull", npoints = 1
   sp.base <- obj@sp
   tunit <- detect_temporal_unit(obj@time)
   if (is.null(tunit)) {
-    ts.base <- sort(unique(index(obj@time)))
+    ts.base <- sort(unique(zoo::index(obj@time)))
     ts.base <- ts.base[length(ts.base)]
   } else {
     if (tunit == "days") {
-      ts.base <- sort(unique(index(obj@time)))
+      ts.base <- sort(unique(zoo::index(obj@time)))
       ts.base <- as.Date(ts.base)[length(ts.base)]
     } else if (tunit != "days" & tunit != "unknown") {
-      ts.base <- sort(unique(index(obj@time)))
+      ts.base <- sort(unique(zoo::index(obj@time)))
       ts.base <- ts.base[length(ts.base)]
     }
   }
 
   sp.base <- create_new_data(sp.base, gen_mode = gen_mode, npoints = npoints)
-  sp.base <- sp::spTransform(sp.base, proj4string(obj@sp))
+  sp.base <- sp::spTransform(sp.base, sp::proj4string(obj@sp))
   if (!is.null(forward)) {
     # TODO: temporal unit-dependent setting
     if (tunit == "hours") {
@@ -144,11 +146,11 @@ create_new_data.ST.legacy <- function(obj, form, gen_mode = "chull", npoints = 1
       ts.base <- ts.base + 1:forward
     }
   } else {
-    ts.base <- as.Date(sort(unique(index(obj@time))))
+    ts.base <- as.Date(sort(unique(zoo::index(obj@time))))
   }
   dat <- data.frame(dat = rep(1, length(sp.base) * length(ts.base)))
   colnames(dat)[1] <- as.character(form)[2]
-  new_data_ST <- STFDF(
+  new_data_ST <- spacetime::STFDF(
     sp = sp.base,
     time = ts.base,
     data = dat
@@ -173,7 +175,7 @@ create_new_data.ST <- function(obj,
                                npoints = 1e4,
                                forward = 6) {
   if (!inherits(obj, "sf")) {
-    obj <- st_as_sftime(obj)
+    obj <- sftime::st_as_sftime(obj)
   }
   st.geom <- obj[[attr(obj, "sf_column")]]
   st.time <- obj[[attr(obj, "time_column")]]
@@ -224,11 +226,11 @@ create_new_data.ST <- function(obj,
     geometry = sp.base
   )
   colnames(new_data_ST)[1] <- as.character(form)[2]
-  new_data_ST <- st_as_sftime(new_data_ST,
+  new_data_ST <- sftime::st_as_sftime(new_data_ST,
     sf_column_name = "geometry",
     time_column_name = "time"
   )
-  st_crs(new_data_ST) <- st_crs(obj)
+  sf::st_crs(new_data_ST) <- sf::st_crs(obj)
   # new_data_ST@sp@proj4string = obj@sp@proj4string
   return(new_data_ST)
 }

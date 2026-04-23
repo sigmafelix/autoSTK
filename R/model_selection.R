@@ -11,7 +11,7 @@
 ic_stv <- function(fit_obj, n_obs) {
   if (is.null(fit_obj$loglik))
     stop("ic_stv() requires a fit with objective = 'MLE'.")
-  k   <- length(extractPar(fit_obj$jointSTV))
+  k   <- length(gstat::extractPar(fit_obj$jointSTV))
   ll  <- fit_obj$loglik
   list(
     AIC    = -2 * ll + 2 * k,

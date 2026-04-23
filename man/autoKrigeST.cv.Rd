@@ -67,19 +67,27 @@ autoKrigeST.cv(
 
 \item{prodsum_k}{numeric. The parameter for the case when 'productSum' is chosen for type_stv.}
 
+\item{surface}{logical. If TRUE, also return variogram surface in fitting path.}
+
 \item{start_vals}{numeric vector (3). The initial values to optimize the spatiotemporal variogram model.}
 
 \item{miscFitOptions}{list. See ?automap::autofitVariogram.}
 
+\item{measurement_error}{numeric vector of length 3: spatial, temporal, and joint measurement error terms.}
+
 \item{cores}{integer. The number of threads that will be used to compute the sample spatiotemporal variogram.}
 
-\item{newdata_mode}{character. One of 'rect' (rectangular grid) and 'chull' (convex hull)}
+\item{seed}{integer. Random seed for fold generation.}
 
-\item{newdata_npoints}{integer. The number of points that will be generated in the range of geometry the user specified (one of rectangle or convex hull)}
+\item{variogram_from_full}{logical. If TRUE, fit one ST variogram on full data and reuse across folds.}
 
-\item{GLS.model}{a variogram model. The default value is NA. If a variogram model is passed, a Generalized Lease Squares sample variogram will be calculated.}
+\item{optimizer}{character. Optimization method passed to ST variogram fitting.}
 
-\item{predict_chunk}{integer. The number of data points per chunk in the new data for the large data. It should be meticulously chosen according to the user's machine specification.}
+\item{objective}{character. Objective for ST variogram fitting ('WLS' or 'MLE').}
+
+\item{n_restart}{integer. Number of restarts for optimizer = 'lbfgsb'.}
+
+\item{optimizer_control}{list. Extra control options forwarded to the selected optimizer.}
 }
 \value{
 The cross-validated spatiotemporal Kriging results.
@@ -88,6 +96,7 @@ The cross-validated spatiotemporal Kriging results.
 Cross-validation of spatiotemporal Kriging
 }
 \examples{
+\donttest{
 library(sp)
 library(gstat)
 library(spacetime)
@@ -101,6 +110,7 @@ deair_r <- as(deair_sf, "STFDF")
 deair_r@sp@proj4string <- CRS("EPSG:3857")
 deair_rs <- deair_r[, 3751:3800]
 ## autoKrigeST.cv test
+\dontrun{
 akst_cv_t <- autoKrigeST.cv(
   formula = PM10 ~ 1, data = deair_rs, nfold = 3, fold_dim = "temporal",
   cutoff = 300000, width = 30000, tlags = 0:7, cores = 8
@@ -115,4 +125,6 @@ akst_cv_spt <- autoKrigeST.cv(
   formula = PM10 ~ 1, data = deair_rs, nfold = 4, fold_dim = "spacetime",
   cutoff = 300000, width = 30000, tlags = 0:7, cores = 8
 )
+}
+}
 }

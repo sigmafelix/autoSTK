@@ -171,12 +171,13 @@ estimate_initial_params <- function(stva_emp,
 #'   interval relative to the data extent.
 #' @return A named list with elements \code{lower} and \code{upper} (both
 #'   named numeric vectors matching \code{gstat::extractPar(model_template)}).
+#' @importFrom gstat extractPar
 #' @export
 st_param_bounds <- function(model_template, stva_emp,
                              sill_scale  = 2.0,
                              range_scale = 3.0,
                              ani_scale   = 20.0) {
-  init_par  <- extractPar(model_template)
+  init_par  <- gstat::extractPar(model_template)
   par_names <- names(init_par)
 
   maxgamma <- max(stva_emp$gamma, na.rm = TRUE)

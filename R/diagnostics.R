@@ -18,6 +18,7 @@
 #'     \item{separable_fit}{Fitted \code{STVariogramFit} for the separable model.}
 #'     \item{summetric_fit}{Fitted \code{STVariogramFit} for the sumMetric model.}
 #'   }
+#' @importFrom stats pchisq
 #' @export
 test_separability <- function(stf, formula, ...) {
   message("Fitting separable model...")
@@ -38,8 +39,8 @@ test_separability <- function(stf, formula, ...) {
     stop("Both models must be fitted with objective = 'MLE' for the LRT.")
 
   lrt_stat <- 2 * (fit_sum$loglik - fit_sep$loglik)
-  df_diff  <- length(extractPar(fit_sum$jointSTV)) -
-              length(extractPar(fit_sep$jointSTV))
+  df_diff  <- length(gstat::extractPar(fit_sum$jointSTV)) -
+              length(gstat::extractPar(fit_sep$jointSTV))
 
   if (df_diff <= 0) {
     warning("sumMetric has fewer or equal parameters than separable; LRT ",
@@ -72,23 +73,24 @@ test_separability <- function(stf, formula, ...) {
 #' @param plot Logical. Whether to produce a base-R plot.
 #' @return Invisibly, a data.frame with columns \code{interval} and
 #'   \code{stAni}.
+#' @importFrom gstat estiStAni
 #' @export
 plot_aniso_sensitivity <- function(stva_emp, spatial_vgm, temporal_vgm,
                                    n_intervals = 20L, plot = TRUE) {
   maxspl    <- max(stva_emp$spacelag, na.rm = TRUE)
-  intervals <- seq(0.05, 0.95, length.out = n_intervals) * median(stva_emp$spacelag)
+  intervals <- seq(0.05, 0.95, length.out = n_intervals) * stats::median(stva_emp$spacelag)
 
   ratios <- vapply(intervals, function(iv) {
     tryCatch(
-      estiStAni(stva_emp,
+      gstat::estiStAni(stva_emp,
                 interval     = c(iv, 2 * iv),
                 spatialVgm   = spatial_vgm,
                 temporalVgm  = temporal_vgm),
       error   = function(e) NA_real_,
       warning = function(w) suppressWarnings(
         tryCatch(
-          estiStAni(stva_emp, interval = c(iv, 2 * iv),
-                    spatialVgm = spatial_vgm, temporalVgm = temporal_vgm),
+          gstat::estiStAni(stva_emp, interval = c(iv, 2 * iv),
+                           spatialVgm = spatial_vgm, temporalVgm = temporal_vgm),
           error = function(e2) NA_real_
         )
       )

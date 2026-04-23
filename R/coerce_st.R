@@ -31,6 +31,7 @@
 #'   spatial and temporal faces.  Detected automatically from
 #'   \code{cubble::key_vars()} when \code{NULL}.
 #' @return An \code{sftime} object with a \code{geometry} column (sfc_POINT).
+#' @importFrom cubble is_cubble_spatial face_temporal
 #' @export
 cubble_to_sftime <- function(x, time_col = NULL, key_col = NULL) {
   if (!requireNamespace("cubble", quietly = TRUE))
@@ -168,7 +169,7 @@ cubble_to_sftime <- function(x, time_col = NULL, key_col = NULL) {
   all_sp_coords <- sp::coordinates(stsdf@sp)
   all_t_vals    <- .extract_time_numeric(stsdf)
 
-  sp_dist_full <- as.matrix(dist(all_sp_coords))
+  sp_dist_full <- as.matrix(stats::dist(all_sp_coords))
   t_dist_full  <- abs(outer(all_t_vals, all_t_vals, "-"))
 
   sp_dists_obs <- sp_dist_full[sp_idx, sp_idx]

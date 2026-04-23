@@ -1,7 +1,7 @@
 Package: autoSTK
 Type: Package
 Title: Automatic Spatio-Temporal Kriging
-Version: 2.1.1
+Version: 2.1.2
 Authors@R: c(
     person("Insang", "Song", email = "geoissong@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-8732-3256"))
@@ -21,24 +21,28 @@ BugReports: https://github.com/sigmafelix/autoSTK/issues
 URL: https://github.com/sigmafelix/autoSTK
 Depends: R (>= 4.1.0)
 Imports:
-    dplyr,
-    automap,
     gstat,
+    automap,
+    graphics,
+    grDevices,
     spacetime,
     sp,
     sf,
     sftime,
     lattice,
     lhs,
-    future,
-    future.apply,
-    zoo
+    stats,
+    utils,
+    zoo,
+    methods,
+    rlang,
+    cubble,
+    rgl
 Suggests:
+    dplyr,
     testthat (>= 3.0.0),
-    rgl,
     furrr,
     GA,
-    cubble,
     mlrMBO,
     ParamHelpers,
     smoof,
@@ -46,7 +50,6 @@ Suggests:
     DiceKriging,
     covatest,
     fields,
-    GpGp,
     stars,
     bench,
     roxygen2
