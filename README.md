@@ -118,6 +118,25 @@ library(autoSTK)
 library(sf)
 library(sftime)
 
+# station
+data(air)
+stations_sf <- sf::st_as_sf(stations) |>
+  sf::st_transform(3857)
+
+# expand to station-time records and keep 2009-05-10 to 2009-05-21
+time_idx <- dates >= as.Date("2009-05-10") & dates <= as.Date("2009-05-21")
+dates_sub <- dates[time_idx]
+air_sub <- air[, time_idx, drop = FALSE]
+
+station_long <- do.call(rbind, lapply(seq_along(dates_sub), function(i) {
+  out <- stations_sf
+  out$id <- seq_len(nrow(stations_sf))
+  out$time <- dates_sub[i]
+  out$PM10 <- as.numeric(air_sub[, i])
+  out
+}))
+station_long <- station_long[!is.na(station_long$PM10), ]
+
 # station_long has columns:
 #   id, time, PM10, geometry
 # where geometry is an sfc_POINT column and time is Date/POSIXct.
@@ -143,13 +162,41 @@ fit <- fitVariogramST(
   tlags = 0:7
 )
 
+prediction_grid_st <-
+  {
+    # 1) spatial grid over the station_st extent
+    station_sf <- sf::st_as_sf(station_st)
+    bb <- sf::st_bbox(station_sf)
+    bbox_poly <- sf::st_as_sfc(bb)
+    grid_xy <- sf::st_make_grid(bbox_poly, cellsize = 20000, what = "centers")
+    grid_sf <- sf::st_sf(grid_id = seq_along(grid_xy), geometry = grid_xy)
+
+    # 2) expand grid across all times in station_st and fill with 1
+    times <- sort(unique(sftime::st_time(station_st)))
+    grid_long <- do.call(rbind, lapply(times, function(tt) {
+      out <- grid_sf
+      out$time <- tt
+      out$const1 <- 1
+      out
+    }))
+
+    # 3) convert to sftime for predictKrigeST(newdata = ...)
+    sftime::st_as_sftime(grid_long, time_column_name = "time")
+  }
+
+
 pred <- predictKrigeST(
   fit = fit,
   data = station_st,
   newdata = prediction_grid_st,
   formula = PM10 ~ 1,
-  nmax = 40
+  nmax = 40,
+  cores = 8L
 )
+
+pred_stars <- st_as_stars(pred$krige_output)
+plot(pred_stars[3, ])
+
 ```
 
 `fitVariogramST()` and `predictKrigeST()` are useful when you want to reuse the
@@ -165,8 +212,10 @@ the nested or temporal face to `sftime`.
 library(autoSTK)
 library(cubble)
 
-# cb is a cubble_df created from an sf object with station geometries and a
-# temporal table containing PM10 observations.
+# Build a cubble object from the long sf table created above.
+cb <- cubble::as_cubble(station_long, key = id, index = time)
+
+# Convert nested/temporal cubble faces to sftime.
 pm10_st <- cubble_to_sftime(cb, time_col = "time", key_col = "id")
 
 akst_cb <- autoKrigeST(
