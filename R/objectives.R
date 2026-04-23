@@ -7,7 +7,7 @@
 # 1985).  Returns a scalar (MSErr from fit.StVariogram) or Inf on failure.
 .wls_stv <- function(model, stva_emp) {
   tryCatch({
-    fitted <- fit.StVariogram(stva_emp, model, method = "L-BFGS-B")
+    fitted <- gstat::fit.StVariogram(stva_emp, model, method = "L-BFGS-B")
     mse <- attr(fitted, "MSErr")
     if (is.null(mse) || !is.finite(mse)) Inf else mse
   }, error = function(e) Inf)
@@ -41,7 +41,7 @@
 
   # Evaluate variogram at all pairs
   gamma_vals <- tryCatch(
-    variogramSurface(model, lag_df)$gamma,
+    gstat::variogramSurface(model, lag_df)$gamma,
     error = function(e) return(rep(Inf, nrow(lag_df)))
   )
 
@@ -51,8 +51,8 @@
 
   # Total sill (process variance = C(0,0)) by evaluating at very large lag
   C00 <- tryCatch(
-    variogramSurface(model,
-                     data.frame(spacelag = 1e10, timelag = 1e10))$gamma,
+    gstat::variogramSurface(model,
+                            data.frame(spacelag = 1e10, timelag = 1e10))$gamma,
     error = function(e) NA_real_
   )
   if (!is.finite(C00) || C00 <= 0) return(-Inf)

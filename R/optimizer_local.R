@@ -4,7 +4,7 @@
 # Uses gstat's internal updateVgmST if available, otherwise returns NULL.
 .set_stvgm_par <- function(model_template, par) {
   tryCatch(
-    gstat:::updateVgmST(model_template, par),
+    rlang::inject(gstat::vgmST(!!!par)),
     error = function(e) NULL
   )
 }
@@ -32,7 +32,7 @@
       if (requireNamespace("lhs", quietly = TRUE)) {
         u <- lhs::randomLHS(1L, length(bounds$lower))[1L, ]
       } else {
-        u <- runif(length(bounds$lower))
+        u <- stats::runif(length(bounds$lower))
       }
       new_par   <- bounds$lower + u * (bounds$upper - bounds$lower)
       mod_start <- .set_stvgm_par(model_template, new_par)
@@ -47,7 +47,7 @@
     }
 
     # Clamp starting params inside bounds
-    init_par <- extractPar(mod_start)
+    init_par <- gstat::extractPar(mod_start)
     init_par <- pmax(pmin(init_par, bounds$upper), bounds$lower)
     mod_start_clamped <- tryCatch(
       .set_stvgm_par(mod_start, init_par),
@@ -56,7 +56,7 @@
     if (is.null(mod_start_clamped)) mod_start_clamped <- mod_start
 
     mod_fit <- tryCatch(
-      fit.StVariogram(
+      gstat::fit.StVariogram(
         object  = stva_emp,
         model   = mod_start_clamped,
         method  = "L-BFGS-B",
@@ -68,7 +68,7 @@
       warning = function(w) {
         suppressWarnings(
           tryCatch(
-            fit.StVariogram(
+            gstat::fit.StVariogram(
               object  = stva_emp,
               model   = mod_start_clamped,
               method  = "L-BFGS-B",

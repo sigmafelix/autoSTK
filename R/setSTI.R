@@ -23,6 +23,12 @@
 #' @param plot3d Boolean. Wheter you make a three-dimensional graph with rgl package
 #' @param cores Integer. Number of threads passed to \code{gstat::variogramST}.
 #' @return Depends on the arguments wireframe (if TRUE, list of length 2) and plot3d (if TRUE, list of length 3), a StVariogram object otherwise.
+#' @importFrom stats as.formula quantile dist
+#' @importFrom gstat variogramST
+#' @importFrom sp coordinates
+#' @importFrom lattice wireframe
+#' @importFrom rgl persp3d
+#' @importFrom grDevices colorRampPalette dev.new grey
 #' @export
 setSTI <-
   function(stf,
@@ -37,7 +43,7 @@ setSTI <-
            wireframe = FALSE,
            plot3d = FALSE,
            cores = 1) {
-    formula <- as.formula(formula)
+    formula <- stats::as.formula(formula)
 
     # Keep temporal lags valid for the input series to avoid empty lag bins.
     max_tlag <- max(length(stf@time) - 1L, 0L)
@@ -55,7 +61,7 @@ setSTI <-
     # }
 
     compute_stv <- function(cutoff_val, width_val) {
-      variogramST(
+      gstat::variogramST(
         formula = formula,
         data = stf,
         tlags = tlags,
@@ -114,10 +120,10 @@ setSTI <-
         apo.pmsub.stf,
         drape = TRUE,
         ylab = paste("Time lag (", label.tlag, ")", sep = ""),
-        col.regions = colorRampPalette(colors = c("white", "red"))(100),
+        col.regions = grDevices::colorRampPalette(colors = c("white", "red"))(100),
         zlim = c(0, max(apo.pmsub.stf$gamma) * 1.02)
       )
-      dev.new()
+      grDevices::dev.new()
       print(wireframe.stf)
       plot.sti.set <- list(apo.pmsub.stf, wireframe.stf)
     }

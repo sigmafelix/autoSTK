@@ -34,12 +34,12 @@ autofitVariogram_ <- function(formula, input_data, input_vgm = NULL, model = c("
       if (is.na(start_vals[2])) range <- 1 # If a power mode, range == 1 is a better start value
       if (is.na(start_vals[3])) sill <- 1
     }
-    vgm_try <- vgm(
+    vgm_try <- gstat::vgm(
       psill = psill, model = model, range = range,
       nugget = nugget, kappa = kappa, Err = measurement_error
     )
     obj <- try(
-      fit.variogram(experimental_variogram,
+      gstat::fit.variogram(experimental_variogram,
         model = vgm_try,
         fit.ranges = c(fit_range),
         fit.sills = c(fit_nugget, fit_sill),
@@ -69,16 +69,16 @@ autofitVariogram_ <- function(formula, input_data, input_vgm = NULL, model = c("
     # Create boundaries
     # if ST* or Spatial* object
     if (sum(grepl("(Spatial|ST).*", class(input_data))) > 0) {
-      longlat <- !is.projected(input_data)
+      longlat <- !sp::is.projected(input_data)
       if (is.na(longlat)) {
         longlat <- FALSE
       }
-      diagonal <- spDists(t(bbox(input_data)), longlat = longlat)[2]
+      diagonal <- sp::spDists(t(sp::bbox(input_data)), longlat = longlat)[2]
     } else {
-      longlat <- st_is_longlat(input_data)
-      diagonal <- st_as_sfc(st_bbox(input_data))
-      diagonal <- st_cast(diagonal, "POINT")
-      diagonal <- st_distance(diagonal[c(1, 3)], longlat = longlat)[2, 1]
+      longlat <- sf::st_is_longlat(input_data)
+      diagonal <- sf::st_as_sfc(sf::st_bbox(input_data))
+      diagonal <- sf::st_cast(diagonal, "POINT")
+      diagonal <- sf::st_distance(diagonal[c(1, 3)], longlat = longlat)[2, 1]
       diagonal <- as.vector(diagonal)
     }
     if (is.null(boundaries)) {
@@ -94,15 +94,15 @@ autofitVariogram_ <- function(formula, input_data, input_vgm = NULL, model = c("
 
     # Take the misc fit options and overwrite the defaults by the user specified ones
     miscFitOptionsDefaults <- list(merge.small.bins = TRUE, min.np.bin = 5)
-    miscFitOptions <- modifyList(miscFitOptionsDefaults, miscFitOptions)
+    miscFitOptions <- utils::modifyList(miscFitOptionsDefaults, miscFitOptions)
 
     # If you specifiy a variogram model in GLS.model the Generelised least squares sample variogram is constructed
-    if (!is(GLS.model, "variogramModel")) {
-      experimental_variogram <- variogram(formula, variogram_input, boundaries = boundaries, ...)
+    if (!methods::is(GLS.model, "variogramModel")) {
+      experimental_variogram <- gstat::variogram(formula, variogram_input, boundaries = boundaries, ...)
     } else {
       if (verbose) cat("Calculating GLS sample variogram\n")
-      g <- gstat(NULL, "bla", formula, variogram_input, model = GLS.model, set = list(gls = 1))
-      experimental_variogram <- variogram(g, boundaries = boundaries, ...)
+      g <- gstat::gstat(NULL, "bla", formula, variogram_input, model = GLS.model, set = list(gls = 1))
+      experimental_variogram <- gstat::variogram(g, boundaries = boundaries, ...)
     }
 
     # request by Jon Skoien
@@ -111,10 +111,10 @@ autofitVariogram_ <- function(formula, input_data, input_vgm = NULL, model = c("
       while (TRUE) {
         if (length(experimental_variogram$np[experimental_variogram$np < miscFitOptions[["min.np.bin"]]]) == 0 | length(boundaries) == 1) break
         boundaries <- boundaries[2:length(boundaries)]
-        if (!is(GLS.model, "variogramModel")) {
-          experimental_variogram <- variogram(formula, variogram_input, boundaries = boundaries, ...)
+        if (!methods::is(GLS.model, "variogramModel")) {
+          experimental_variogram <- gstat::variogram(formula, variogram_input, boundaries = boundaries, ...)
         } else {
-          experimental_variogram <- variogram(g, boundaries = boundaries, ...)
+          experimental_variogram <- gstat::variogram(g, boundaries = boundaries, ...)
         }
       }
     }
@@ -224,18 +224,6 @@ autofitVariogram_ <- function(formula, input_data, input_vgm = NULL, model = c("
     }
 
     result <- list(exp_var = experimental_variogram, var_model = vgm_list[[which.min(SSerr_list)]], sserr = min(SSerr_list))
-  }
-
-  # if (is.null(model) & )
-  if (is.null(model) & !is.null(input_data)) {
-    svar.af <- svariso(input_data, as.character(formula)[2], maxlag = boundaries[length(boundaries)], nlags = length(boundaries))
-    svar.af <- fitsvar.sb.iso(svar.af, dk = 10)
-    result <- list(exp_var = svar.af, var_model = vgm.tab.svarmod(svar.af, seq(0, svar.af$range, length = 5000)))
-  }
-  if (is.null(model) & !is.null(input_vgm)) {
-    svar.af <- .as.svariso.variogram(input_vgm)
-    svar.af <- fitsvar.sb.iso(svar.af, dk = 10)
-    result <- list(exp_var = svar.af, var_model = vgm.tab.svarmod(svar.af, seq(0, svar.af$range, length = 5000)))
   }
 
 

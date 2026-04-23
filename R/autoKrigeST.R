@@ -51,10 +51,10 @@ predictKrigeST <- function(fit, data, newdata, formula,
     idx_end      <- idx_start + predict_chunk - 1L
     idx_end[length(idx_end)] <- len_new_data
 
-    pb <- txtProgressBar(style = 3L, max = len_chunks)
+    pb <- utils::txtProgressBar(style = 3L, max = len_chunks)
     krige_results_l <- vector("list", length = len_chunks)
     for (i in seq_len(len_chunks)) {
-      krige_results_l[[i]] <- krigeST(
+      krige_results_l[[i]] <- gstat::krigeST(
         formula   = formula,
         data      = input_data,
         newdata   = new_data[idx_start[i]:idx_end[i], ],
@@ -64,12 +64,12 @@ predictKrigeST <- function(fit, data, newdata, formula,
         modelList  = fit$jointSTV,
         ...
       )
-      setTxtProgressBar(pb, i)
+      utils::setTxtProgressBar(pb, i)
     }
     close(pb)
     krige_result <- do.call("rbind", krige_results_l)
   } else {
-    krige_result <- krigeST(
+    krige_result <- gstat::krigeST(
       formula    = formula,
       data       = input_data,
       newdata    = new_data,

@@ -169,7 +169,7 @@
 
   # ---- Reconstruct vgmST from best parameters -----------------------------
   mod_ga <- tryCatch(
-    gstat:::updateVgmST(model_template, best_par),
+    rlang::inject(gstat::vgmST(!!!best_par)),
     error = function(e) {
       warning("Could not update vgmST with GA solution; returning template.")
       model_template
@@ -179,7 +179,7 @@
   # ---- Optional L-BFGS-B refinement ---------------------------------------
   if (lbfgsb_refine) {
     mod_refined <- tryCatch(
-      fit.StVariogram(
+      gstat::fit.StVariogram(
         object  = stva_emp,
         model   = mod_ga,
         method  = "L-BFGS-B",
@@ -191,7 +191,7 @@
       warning = function(w) {
         suppressWarnings(
           tryCatch(
-            fit.StVariogram(
+            gstat::fit.StVariogram(
               object  = stva_emp,
               model   = mod_ga,
               method  = "L-BFGS-B",

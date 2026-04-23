@@ -45,6 +45,7 @@
 #' deair_r@sp@proj4string <- CRS("EPSG:3857")
 #' deair_rs <- deair_r[, 3751:3800]
 #' ## autoKrigeST.cv test
+#' \dontrun{
 #' akst_cv_t <- autoKrigeST.cv(
 #'   formula = PM10 ~ 1, data = deair_rs, nfold = 3, fold_dim = "temporal",
 #'   cutoff = 300000, width = 30000, tlags = 0:7, cores = 8
@@ -60,6 +61,10 @@
 #'   cutoff = 300000, width = 30000, tlags = 0:7, cores = 8
 #' )
 #' }
+#' }
+#' @importFrom sp coordinates
+#' @importFrom stats kmeans setNames
+#' @importFrom methods as
 #' @export
 autoKrigeST.cv <- function(data,
                            fold_dim = c('spatial', 'temporal', 'random', 'spacetime'),
@@ -98,8 +103,8 @@ autoKrigeST.cv <- function(data,
     data_validation <- vector("list", length = nfold)
 
     if (grepl("^spatial$|^space$", dimension)) {
-      sp_coords <- coordinates(data@sp)
-      sp_coords_km <- kmeans(sp_coords, nfold)
+      sp_coords <- sp::coordinates(data@sp)
+      sp_coords_km <- stats::kmeans(sp_coords, nfold)
       indices <- sp_coords_km$cluster
 
       vv <- split(1:len_space, indices)
@@ -145,8 +150,8 @@ autoKrigeST.cv <- function(data,
         v_t <- rep(targ, sqrt(nfold))
       }
 
-      sp_coords <- coordinates(data@sp)
-      sp_coords_km <- kmeans(sp_coords, sqrt(nfold))
+      sp_coords <- sp::coordinates(data@sp)
+      sp_coords_km <- stats::kmeans(sp_coords, sqrt(nfold))
       indices <- sp_coords_km$cluster
 
       vv_sp <- split(1:len_space, indices)

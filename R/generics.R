@@ -25,7 +25,7 @@ summary.STVariogramFit <- function(object, ...) {
   if (!is.null(mse)) cat("MSErr         :", signif(mse, 5L), "\n")
   if (!is.null(object$loglik)) {
     cat("log-likelihood:", signif(object$loglik, 6L), "\n")
-    k <- length(extractPar(object$jointSTV))
+    k <- length(gstat::extractPar(object$jointSTV))
     n <- object$n_obs
     if (!is.null(n)) {
       aic <- -2 * object$loglik + 2 * k
@@ -36,7 +36,7 @@ summary.STVariogramFit <- function(object, ...) {
   }
 
   cat("\nJoint ST variogram parameters:\n")
-  print(extractPar(object$jointSTV))
+  print(gstat::extractPar(object$jointSTV))
   cat("\nSpatial marginal:\n")
   print(object$SpV$var_model)
   cat("\nTemporal marginal:\n")
@@ -44,13 +44,14 @@ summary.STVariogramFit <- function(object, ...) {
   invisible(object)
 }
 
+#' @importFrom stats AIC BIC
 #' @export
 AIC.STVariogramFit <- function(object, ..., k = 2) {
   if (is.null(object$loglik)) {
     warning("AIC requires objective = 'MLE'. Returning NA.")
     return(NA_real_)
   }
-  n_par <- length(extractPar(object$jointSTV))
+  n_par <- length(gstat::extractPar(object$jointSTV))
   -2 * object$loglik + k * n_par
 }
 
@@ -64,7 +65,7 @@ BIC.STVariogramFit <- function(object, ...) {
     warning("BIC requires n_obs to be stored in the fit. Returning NA.")
     return(NA_real_)
   }
-  n_par <- length(extractPar(object$jointSTV))
+  n_par <- length(gstat::extractPar(object$jointSTV))
   -2 * object$loglik + log(object$n_obs) * n_par
 }
 

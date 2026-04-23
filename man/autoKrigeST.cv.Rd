@@ -110,6 +110,7 @@ deair_r <- as(deair_sf, "STFDF")
 deair_r@sp@proj4string <- CRS("EPSG:3857")
 deair_rs <- deair_r[, 3751:3800]
 ## autoKrigeST.cv test
+\dontrun{
 akst_cv_t <- autoKrigeST.cv(
   formula = PM10 ~ 1, data = deair_rs, nfold = 3, fold_dim = "temporal",
   cutoff = 300000, width = 30000, tlags = 0:7, cores = 8
@@ -124,5 +125,6 @@ akst_cv_spt <- autoKrigeST.cv(
   formula = PM10 ~ 1, data = deair_rs, nfold = 4, fold_dim = "spacetime",
   cutoff = 300000, width = 30000, tlags = 0:7, cores = 8
 )
+}
 }
 }

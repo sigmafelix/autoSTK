@@ -64,7 +64,7 @@
   upper <- bounds$upper
 
   # Starting point: current model parameters, clamped to bounds
-  init_par <- extractPar(model_template)
+  init_par <- gstat::extractPar(model_template)
   init_par <- pmax(pmin(init_par, upper), lower)
 
   # Transform to unconstrained space for SANN
@@ -106,14 +106,14 @@
   best_par   <- .sigmoid_to_box(best_par_u, lower, upper)
 
   mod_sa <- tryCatch(
-    gstat:::updateVgmST(model_template, best_par),
+    rlang::inject(gstat::vgmST(!!!best_par)),
     error = function(e) model_template
   )
 
   # ---- Optional L-BFGS-B refinement from SANN solution --------------------
   if (lbfgsb_refine) {
     mod_refined <- tryCatch(
-      fit.StVariogram(
+      gstat::fit.StVariogram(
         object  = stva_emp,
         model   = mod_sa,
         method  = "L-BFGS-B",
@@ -125,7 +125,7 @@
       warning = function(w) {
         suppressWarnings(
           tryCatch(
-            fit.StVariogram(
+            gstat::fit.StVariogram(
               object  = stva_emp,
               model   = mod_sa,
               method  = "L-BFGS-B",
