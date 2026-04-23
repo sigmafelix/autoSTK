@@ -11,7 +11,7 @@ functions (v2.0+)."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">autoSTK</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.1.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.1.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -142,7 +142,7 @@ variogram model families (e.g. <code>c("Ste", "Exc", "Exp", "Wav")</code>).</p><
 
 <dt id="arg-optimizer">optimizer<a class="anchor" aria-label="anchor" href="#arg-optimizer"></a></dt>
 <dd><p>Character. Optimisation strategy:
-<code>"lbfgsb"</code> (default — multi-start L-BFGS-B),
+<code>"lbfgsb"</code> (default - multi-start L-BFGS-B),
 <code>"grid"</code> (LHS grid search + L-BFGS-B refinement),
 <code>"sa"</code> (simulated annealing via <code>optim(method = "SANN")</code>), or
 <code>"ga"</code> (genetic algorithm via the <span class="pkg">GA</span> package).</p></dd>
@@ -233,10 +233,49 @@ optimiser.  Recognised keys differ by optimiser:</p><dl><dt><code>"lbfgsb"</code
 <span class="r-in"><span><span class="va">rural</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/sftime/reference/st_as_sftime.html" class="external-link">st_as_sftime</a></span><span class="op">(</span><span class="va">rural</span>, sf_column_name <span class="op">=</span> <span class="st">'geometry'</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">rr</span> <span class="op">&lt;-</span> <span class="va">rural</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/match.html" class="external-link">match</a></span><span class="op">(</span><span class="va">rural</span><span class="op">$</span><span class="va">time</span>, <span class="va">dates</span><span class="op">[</span><span class="fl">3001</span><span class="op">:</span><span class="fl">3060</span><span class="op">]</span>, nomatch <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">0</span>, <span class="op">]</span></span></span>
 <span class="r-in"><span><span class="va">rr</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/methods/as.html" class="external-link">as</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/methods/as.html" class="external-link">as</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/methods/as.html" class="external-link">as</a></span><span class="op">(</span><span class="va">rr</span>, <span class="st">"STIDF"</span><span class="op">)</span>, <span class="st">"STFDF"</span><span class="op">)</span>, <span class="st">"STSDF"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">rrstv</span> <span class="op">&lt;-</span> <span class="fu">autofitVariogramST</span><span class="op">(</span>stf <span class="op">=</span> <span class="va">rr</span>, formula <span class="op">=</span> <span class="va">PM10</span> <span class="op">~</span> <span class="fl">1</span>, surface <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in apply(do.call(cbind, lapply(ret, function(x) x$np)), 1, sum,     na.rm = TRUE):</span> dim(X) must have a positive length</span>
+<span class="r-in"><span><span class="va">rrstv</span> <span class="op">&lt;-</span></span></span>
+<span class="r-in"><span>  <span class="fu">autofitVariogramST</span><span class="op">(</span></span></span>
+<span class="r-in"><span>    stf <span class="op">=</span> <span class="va">rr</span>,</span></span>
+<span class="r-in"><span>    formula <span class="op">=</span> <span class="va">PM10</span> <span class="op">~</span> <span class="fl">1</span>,</span></span>
+<span class="r-in"><span>    surface <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
+<span class="r-in"><span>    cutoff <span class="op">=</span> <span class="fl">2e6</span>,</span></span>
+<span class="r-in"><span>    width <span class="op">=</span> <span class="fl">2e5</span>,</span></span>
+<span class="r-in"><span>    tlags <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">6</span><span class="op">)</span></span></span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Some models where removed for being either NULL or having a negative sill/range/nugget, </span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> 	set verbose == TRUE for more information</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>value out of range in 'bessel_k'</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>value out of range in 'bessel_k'</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>value out of range in 'bessel_k'</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>value out of range in 'bessel_k'</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>value out of range in 'bessel_k'</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>value out of range in 'bessel_k'</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>value out of range in 'bessel_k'</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>value out of range in 'bessel_k'</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>value out of range in 'bessel_k'</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>value out of range in 'bessel_k'</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>value out of range in 'bessel_k'</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>value out of range in 'bessel_k'</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>value out of range in 'bessel_k'</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>value out of range in 'bessel_k'</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>value out of range in 'bessel_k'</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>value out of range in 'bessel_k'</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>value out of range in 'bessel_k'</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>value out of range in 'bessel_k'</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>value out of range in 'bessel_k'</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>value out of range in 'bessel_k'</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>value out of range in 'bessel_k'</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>value out of range in 'bessel_k'</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>value out of range in 'bessel_k'</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>value out of range in 'bessel_k'</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Some models where removed for being either NULL or having a negative sill/range/nugget, </span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> 	set verbose == TRUE for more information</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>No convergence after 200 iterations: try different initial values?</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>All optimisation attempts failed; returning initial model template.</span>
 <span class="r-in"><span><span class="va">rrstv</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'rrstv' not found</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Spatio-Temporal Variogram Fit</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ST model type : </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Optimizer     : lbfgsb </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Objective     : WLS </span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

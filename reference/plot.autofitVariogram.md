@@ -5,7 +5,8 @@ Plot the automatically fitted variogram
 ## Usage
 
 ``` r
-plot.autofitVariogram(
+# S3 method for class 'autofitVariogram'
+plot(
   x,
   plotit = TRUE,
   title = "Experimental variogram and fitted variogram model",
@@ -27,7 +28,7 @@ plot.autofitVariogram(
 
   character. the title of the plot.
 
-- \`...\`:
+- ...:
 
   passed to xyplot
 

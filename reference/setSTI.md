@@ -65,9 +65,10 @@ setSTI(
 
   Boolean. Wheter you make a three-dimensional graph with rgl package
 
-- logarithm:
+- cores:
 
-  Boolean. log-transformation
+  Integer. Number of threads passed to
+  [`gstat::variogramST`](https://r-spatial.github.io/gstat/reference/variogramST.html).
 
 ## Value
 

@@ -32,7 +32,7 @@
   : Compute AIC and BIC for a fitted STVariogramFit (MLE-based)
 - [`marginal.variogramST()`](https://sigmafelix.github.io/autoSTK/reference/marginal.variogramST.md)
   : Compute the marginal spatial or temporal sample variogram
-- [`plot.autofitVariogram()`](https://sigmafelix.github.io/autoSTK/reference/plot.autofitVariogram.md)
+- [`plot(`*`<autofitVariogram>`*`)`](https://sigmafelix.github.io/autoSTK/reference/plot.autofitVariogram.md)
   : Plot the automatically fitted variogram
 - [`plot_aniso_sensitivity()`](https://sigmafelix.github.io/autoSTK/reference/plot_aniso_sensitivity.md)
   : Sensitivity Plot of the Spatio-Temporal Anisotropy Ratio

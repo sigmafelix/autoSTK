@@ -103,7 +103,7 @@ autofitVariogramST(
 
 - optimizer:
 
-  Character. Optimisation strategy: `"lbfgsb"` (default — multi-start
+  Character. Optimisation strategy: `"lbfgsb"` (default - multi-start
   L-BFGS-B), `"grid"` (LHS grid search + L-BFGS-B refinement), `"sa"`
   (simulated annealing via `optim(method = "SANN")`), or `"ga"` (genetic
   algorithm via the GA package).
@@ -205,8 +205,47 @@ rural <- cbind(airdf, time = dates_full, stations_full)
 rural <- st_as_sftime(rural, sf_column_name = 'geometry')
 rr <- rural[match(rural$time, dates[3001:3060], nomatch = FALSE) > 0, ]
 rr <- as(as(as(rr, "STIDF"), "STFDF"), "STSDF")
-rrstv <- autofitVariogramST(stf = rr, formula = PM10 ~ 1, surface = TRUE)
-#> Error in apply(do.call(cbind, lapply(ret, function(x) x$np)), 1, sum,     na.rm = TRUE): dim(X) must have a positive length
+rrstv <-
+  autofitVariogramST(
+    stf = rr,
+    formula = PM10 ~ 1,
+    surface = TRUE,
+    cutoff = 2e6,
+    width = 2e5,
+    tlags = 0:6)
+#> Warning: Some models where removed for being either NULL or having a negative sill/range/nugget, 
+#>  set verbose == TRUE for more information
+#> Warning: value out of range in 'bessel_k'
+#> Warning: value out of range in 'bessel_k'
+#> Warning: value out of range in 'bessel_k'
+#> Warning: value out of range in 'bessel_k'
+#> Warning: value out of range in 'bessel_k'
+#> Warning: value out of range in 'bessel_k'
+#> Warning: value out of range in 'bessel_k'
+#> Warning: value out of range in 'bessel_k'
+#> Warning: value out of range in 'bessel_k'
+#> Warning: value out of range in 'bessel_k'
+#> Warning: value out of range in 'bessel_k'
+#> Warning: value out of range in 'bessel_k'
+#> Warning: value out of range in 'bessel_k'
+#> Warning: value out of range in 'bessel_k'
+#> Warning: value out of range in 'bessel_k'
+#> Warning: value out of range in 'bessel_k'
+#> Warning: value out of range in 'bessel_k'
+#> Warning: value out of range in 'bessel_k'
+#> Warning: value out of range in 'bessel_k'
+#> Warning: value out of range in 'bessel_k'
+#> Warning: value out of range in 'bessel_k'
+#> Warning: value out of range in 'bessel_k'
+#> Warning: value out of range in 'bessel_k'
+#> Warning: value out of range in 'bessel_k'
+#> Warning: Some models where removed for being either NULL or having a negative sill/range/nugget, 
+#>  set verbose == TRUE for more information
+#> Warning: No convergence after 200 iterations: try different initial values?
+#> Warning: All optimisation attempts failed; returning initial model template.
 rrstv
-#> Error: object 'rrstv' not found
+#> Spatio-Temporal Variogram Fit
+#>   ST model type : 
+#>   Optimizer     : lbfgsb 
+#>   Objective     : WLS 
 ```
