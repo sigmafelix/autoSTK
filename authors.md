@@ -8,7 +8,7 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/sigmafelix/autoSTK/blob/master/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/sigmafelix/autoSTK/blob/v2.1.2/DESCRIPTION)
 
 Song I (2026). *autoSTK: Automatic Spatio-Temporal Kriging*. R package
 version 2.1.2, <https://github.com/sigmafelix/autoSTK>.
